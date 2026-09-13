@@ -77,7 +77,11 @@ import { showSubview } from "../practice-router.js";
     posState.ladder = ladder;
     // Порядок чипсов-кнопок перемешивается отдельно от порядка мест за столом — иначе
     // порядок кнопок сам по себе выдаёт правильную рассадку (мощная подсказка, которой быть не должно).
-    posState.optionsOrder = shuffle(ladder);
+    // ВАЖНО: shuffle() мутирует переданный массив на месте. ladder — прямая ссылка на общий
+    // POS_LADDER_OLD[n]/POS_LADDER_NEW[n], один и тот же для всех раундов. Если передать
+    // ladder напрямую, каждый следующий раунд необратимо портит эталонный список позиций
+    // (баг существовал в оригинальном монолите — .slice() делает независимую копию для тасовки).
+    posState.optionsOrder = shuffle(ladder.slice());
     posState.btnSeatIndex = btnSeatIndex;
     posState.ownSeatIndex = ownSeatIndex;
     posState.seats = seats;
