@@ -7,6 +7,7 @@ import Sortable from "../lib/sortable.js";
 import { dict } from "../core/i18n.js";
 import { state } from "../core/state.js";
 import { showSubview, onSubviewShow, onAnySubviewShow } from "./practice-router.js";
+import { loadSection, saveSection } from "../core/storage.js";
 
   /* ===== Хаб «Практика»: данные, рендер, режим редактирования, драг, закрепление =====
      Персистентности пока нет нигде в приложении (сознательно отложено) — весь порядок
@@ -40,6 +41,25 @@ import { showSubview, onSubviewShow, onAnySubviewShow } from "./practice-router.
   };
   HUB_GROUP_ORDER.forEach(g => { hubState.groupOrder[g] = []; hubState.groupOpen[g] = false; });
   HUB_MODULES.forEach(m => { hubState.groupOrder[m.group].push(m.id); });
+
+  // Восстановление сохранённого порядка/закрепления/компакт-режима — до первого
+  // renderHub() ниже. Валидируем на случай, если список тренировок с тех пор
+  // изменился: убираем id, которых больше нет, дописываем новые в конец, а не
+  // падаем и не молча теряем их из хаба.
+  const savedHubSettings = loadSection("hub");
+  if (savedHubSettings) {
+    if (savedHubSettings.compact !== undefined) hubState.compact = savedHubSettings.compact;
+    if (savedHubSettings.groupOrder) {
+      const allCurrentIds = new Set(HUB_MODULES.map(m => m.id));
+      HUB_GROUP_ORDER.forEach(g => {
+        const saved = savedHubSettings.groupOrder[g];
+        if (!Array.isArray(saved)) return;
+        const stillValid = saved.filter(id => g === "own" ? allCurrentIds.has(id) : hubState.groupOrder[g].includes(id));
+        const missing = hubState.groupOrder[g].filter(id => !stillValid.includes(id));
+        hubState.groupOrder[g] = g === "own" ? stillValid : stillValid.concat(missing);
+      });
+    }
+  }
 
   function hubOpenModule(moduleId) {
     if (moduleId === "outs") showSubview("setup");
@@ -88,11 +108,16 @@ import { showSubview, onSubviewShow, onAnySubviewShow } from "./practice-router.
     hubInitSortable();
   }
 
+  function persistHubSettings() {
+    saveSection("hub", { groupOrder: hubState.groupOrder, compact: hubState.compact });
+  }
+
   function hubTogglePin(moduleId) {
     const idx = hubState.groupOrder.own.indexOf(moduleId);
     if (idx === -1) hubState.groupOrder.own.push(moduleId);
     else hubState.groupOrder.own.splice(idx, 1);
     renderHub();
+    persistHubSettings();
   }
 
   // Единый источник правды для правого слота шапки: тумблер компактности и «Готово»
@@ -123,11 +148,17 @@ import { showSubview, onSubviewShow, onAnySubviewShow } from "./practice-router.
   document.getElementById("hub-done-btn").addEventListener("click", hubExitEdit);
 
   const hubCompactToggleBtn = document.getElementById("hub-compact-toggle");
+  // Синхронизация визуального состояния кнопки под уже восстановленный (выше)
+  // hubState.compact — сам renderHub() ниже уже покажет карточки верно, но кнопка
+  // без этого будет выглядеть выключенной, пока пользователь не кликнет по ней сам.
+  hubCompactToggleBtn.classList.toggle("active", hubState.compact);
+  hubCompactToggleBtn.setAttribute("aria-label", dict[state.lang][hubState.compact ? "hub.compactOff" : "hub.compactOn"]);
   hubCompactToggleBtn.addEventListener("click", () => {
     hubState.compact = !hubState.compact;
     hubCompactToggleBtn.classList.toggle("active", hubState.compact);
     hubCompactToggleBtn.setAttribute("aria-label", dict[state.lang][hubState.compact ? "hub.compactOff" : "hub.compactOn"]);
     renderHub();
+    persistHubSettings();
   });
 
   const hubSubviewEl = document.querySelector('[data-screen="free"] [data-subview="hub"]');
@@ -231,6 +262,7 @@ import { showSubview, onSubviewShow, onAnySubviewShow } from "./practice-router.
         onEnd: evt => {
           evt.from.querySelectorAll(".drag-paused").forEach(c => c.classList.remove("drag-paused"));
           hubState.groupOrder[group] = Array.from(body.querySelectorAll(".hub-card")).map(el => el.dataset.module);
+          persistHubSettings();
         }
       }));
     });

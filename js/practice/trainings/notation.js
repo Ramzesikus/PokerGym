@@ -6,6 +6,7 @@ import { state, RANKS, SUITS, RANK_VALUE } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { pickRandom, shuffle } from "../../core/deck.js";
 import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { loadSection, saveSection } from "../../core/storage.js";
 import { cardEl } from "../../ui/card.js";
 
 
@@ -381,12 +382,22 @@ export function notHandCombos(code) {
     notTokenBlock.style.display = notState.mode === "multi" ? "block" : "none";
   }
 
+  function persistNotationSettings() {
+    saveSection("notation", {
+      mode: notState.mode,
+      rankPool: notState.rankPool,
+      pairs: notState.pairs,
+      tokenType: notState.tokenType
+    });
+  }
+
   wireNotSegmented(notModeSwitch, v => {
     notState.mode = v;
     updateNotTokenBlockVisibility();
+    persistNotationSettings();
   });
-  wireNotSegmented(document.getElementById("not-rankpool-switch"), v => { notState.rankPool = v; });
-  wireNotSegmented(notTokenSwitch, v => { notState.tokenType = v; });
+  wireNotSegmented(document.getElementById("not-rankpool-switch"), v => { notState.rankPool = v; persistNotationSettings(); });
+  wireNotSegmented(notTokenSwitch, v => { notState.tokenType = v; persistNotationSettings(); });
 
   function updateNotTokenPairAvailability() {
     const pairBtn = notTokenSwitch.querySelector('button[data-value="pair"]');
@@ -404,6 +415,7 @@ export function notHandCombos(code) {
   wireNotSegmented(notPairsSwitch, v => {
     notState.pairs = v;
     updateNotTokenPairAvailability();
+    persistNotationSettings();
   });
 
   updateNotTokenBlockVisibility();
@@ -434,3 +446,14 @@ export function notHandCombos(code) {
     if (settings) applySettings(settings);
     runNotationSession();
   });
+
+  const savedNotationSettings = loadSection("notation");
+  if (savedNotationSettings) {
+    applySettings(savedNotationSettings);
+    notModeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === notState.mode));
+    document.getElementById("not-rankpool-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === notState.rankPool));
+    notTokenSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === notState.tokenType));
+    notPairsSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === notState.pairs));
+    updateNotTokenBlockVisibility();
+    updateNotTokenPairAvailability();
+  }

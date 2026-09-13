@@ -8,6 +8,7 @@ import { dict } from "../../core/i18n.js";
 import { pickRandom, shuffle } from "../../core/deck.js";
 import { notHandCombos, wireNotSegmented, notGenRangeToken, notGenCompositeToken, notCellInfo } from "./notation.js";
 import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { loadSection, saveSection } from "../../core/storage.js";
 
   const pfState = {
     rankPool: "all",
@@ -277,27 +278,46 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
     pfToleranceRatioBlock.style.display = (askExact && pfState.probUnit === "ratio") ? "block" : "none";
   }
 
+  function persistPreflopSettings() {
+    saveSection("preflopTable", {
+      rankPool: pfState.rankPool,
+      pairs: pfState.pairs,
+      tokenType: pfState.tokenType,
+      rangeComplexity: pfState.rangeComplexity,
+      showMode: pfState.showMode,
+      probUnit: pfState.probUnit,
+      probInput: pfState.probInput,
+      tolerancePct: pfState.tolerancePct,
+      toleranceRatio: pfState.toleranceRatio
+    });
+  }
+
   wireNotSegmented(document.getElementById("not-show-switch"), v => {
     pfState.showMode = v;
     updatePfSetupVisibility();
+    persistPreflopSettings();
   });
-  wireNotSegmented(document.getElementById("pf-rankpool-switch"), v => { pfState.rankPool = v; });
-  wireNotSegmented(pfTokenSwitch, v => { pfState.tokenType = v; });
-  wireNotSegmented(document.getElementById("pf-complexity-switch"), v => { pfState.rangeComplexity = v; });
+  wireNotSegmented(document.getElementById("pf-rankpool-switch"), v => { pfState.rankPool = v; persistPreflopSettings(); });
+  wireNotSegmented(pfTokenSwitch, v => { pfState.tokenType = v; persistPreflopSettings(); });
+  wireNotSegmented(document.getElementById("pf-complexity-switch"), v => { pfState.rangeComplexity = v; persistPreflopSettings(); });
   wireNotSegmented(document.getElementById("pf-unit-switch"), v => {
     pfState.probUnit = v;
     updatePfSetupVisibility();
+    persistPreflopSettings();
   });
   wireNotSegmented(document.getElementById("pf-input-switch"), v => {
     pfState.probInput = v;
     updatePfSetupVisibility();
+    persistPreflopSettings();
   });
 
   document.getElementById("pf-tolerance-pct-select").addEventListener("change", e => {
     pfState.tolerancePct = parseFloat(e.target.value);
+    persistPreflopSettings();
   });
   document.getElementById("pf-tolerance-ratio-select").addEventListener("change", e => {
     pfState.toleranceRatio = parseFloat(e.target.value);
+    persistPreflopSettings();
   });
 
   function updatePfTokenPairAvailability() {
@@ -316,6 +336,7 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
   wireNotSegmented(pfPairsSwitch, v => {
     pfState.pairs = v;
     updatePfTokenPairAvailability();
+    persistPreflopSettings();
   });
 
   updatePfSetupVisibility();
@@ -338,9 +359,27 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
     if (settings.showMode !== undefined) pfState.showMode = settings.showMode;
     if (settings.probUnit !== undefined) pfState.probUnit = settings.probUnit;
     if (settings.probInput !== undefined) pfState.probInput = settings.probInput;
+    if (settings.tolerancePct !== undefined) pfState.tolerancePct = settings.tolerancePct;
+    if (settings.toleranceRatio !== undefined) pfState.toleranceRatio = settings.toleranceRatio;
   }
 
   registerTrainingEntry("preflop-table", (settings) => {
     if (settings) applySettings(settings);
     runPreflopSession();
   });
+
+  const savedPreflopSettings = loadSection("preflopTable");
+  if (savedPreflopSettings) {
+    applySettings(savedPreflopSettings);
+    document.getElementById("not-show-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.showMode));
+    document.getElementById("pf-rankpool-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.rankPool));
+    pfTokenSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.tokenType));
+    document.getElementById("pf-complexity-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.rangeComplexity));
+    document.getElementById("pf-unit-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.probUnit));
+    document.getElementById("pf-input-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.probInput));
+    pfPairsSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.pairs));
+    document.getElementById("pf-tolerance-pct-select").value = pfState.tolerancePct;
+    document.getElementById("pf-tolerance-ratio-select").value = pfState.toleranceRatio;
+    updatePfSetupVisibility();
+    updatePfTokenPairAvailability();
+  }

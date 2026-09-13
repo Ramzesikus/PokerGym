@@ -9,11 +9,23 @@ import { state, tableBgs } from "../core/state.js";
 import { dict } from "../core/i18n.js";
 import { showSubview } from "../practice/practice-router.js";
 import { hubState } from "../practice/practice.js";
-import { refreshLanguageDisplay as refreshOutsLanguage, refreshAnswerAreaIfActive, refreshCardFacesIfActive } from "../practice/trainings/outs.js";
+import { refreshLanguageDisplay as refreshOutsLanguage, refreshCardFacesIfActive } from "../practice/trainings/outs.js";
 import { refreshLanguageDisplay as refreshComboLanguage } from "../practice/trainings/combinations.js";
 import { refreshPositionsLanguage } from "../practice/trainings/positions.js";
 import { showTheorySubview } from "../theory/theory.js";
 import { suitColor } from "../ui/card.js";
+import { loadSection, saveSection } from "../core/storage.js";
+
+  function persistGlobalSettings() {
+    saveSection("global", {
+      lang: state.lang,
+      cardBack: state.cardBack,
+      faceStyle: state.faceStyle,
+      tableBg: state.tableBg,
+      hideCards: state.hideCards,
+      showTime: state.showTime
+    });
+  }
 
   /* Language */
 
@@ -67,16 +79,7 @@ import { suitColor } from "../ui/card.js";
       state.lang = btn.dataset.value;
       applyLanguage();
       refreshPositionsLanguage();
-    });
-  });
-
-  const outputSwitch = document.getElementById("output-mode-switch");
-  outputSwitch.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      outputSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      state.outputMode = btn.dataset.value;
-      refreshAnswerAreaIfActive();
+      persistGlobalSettings();
     });
   });
 
@@ -85,6 +88,7 @@ import { suitColor } from "../ui/card.js";
   hideCardsToggle.addEventListener("change", () => {
     state.hideCards = hideCardsToggle.checked;
     timeOptions.classList.toggle("disabled", !state.hideCards);
+    persistGlobalSettings();
   });
 
   timeOptions.querySelectorAll(".time-chip").forEach(chip => {
@@ -92,6 +96,7 @@ import { suitColor } from "../ui/card.js";
       timeOptions.querySelectorAll(".time-chip").forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
       state.showTime = chip.dataset.value;
+      persistGlobalSettings();
     });
   });
 
@@ -101,6 +106,7 @@ import { suitColor } from "../ui/card.js";
       cardbackOptions.querySelectorAll(".back-swatch").forEach(s => s.classList.remove("active"));
       swatch.classList.add("active");
       state.cardBack = swatch.dataset.value;
+      persistGlobalSettings();
     });
   });
 
@@ -126,6 +132,7 @@ import { suitColor } from "../ui/card.js";
       state.faceStyle = btn.dataset.value;
       renderFacePreview();
       refreshCardFacesIfActive();
+      persistGlobalSettings();
     });
   });
 
@@ -154,6 +161,7 @@ import { suitColor } from "../ui/card.js";
       chip.classList.add("active");
       state.tableBg = chip.dataset.value;
       applyTableBg();
+      persistGlobalSettings();
     });
   });
 
@@ -174,6 +182,42 @@ import { suitColor } from "../ui/card.js";
 
   renderFacePreview();
   applyTableBg();
+
+  // Восстановление сохранённых настроек — после автоопределения темы по системе,
+  // чтобы явно сохранённый ранее выбор пользователя имел приоритет. Если ничего
+  // не сохранено — оставляем то, что уже выставлено выше (дефолты + автотема).
+  const savedGlobalSettings = loadSection("global");
+  if (savedGlobalSettings) {
+    if (savedGlobalSettings.lang !== undefined) {
+      state.lang = savedGlobalSettings.lang;
+      langSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === state.lang));
+      applyLanguage();
+    }
+    if (savedGlobalSettings.hideCards !== undefined) {
+      state.hideCards = savedGlobalSettings.hideCards;
+      hideCardsToggle.checked = state.hideCards;
+      timeOptions.classList.toggle("disabled", !state.hideCards);
+    }
+    if (savedGlobalSettings.showTime !== undefined) {
+      state.showTime = savedGlobalSettings.showTime;
+      timeOptions.querySelectorAll(".time-chip").forEach(c => c.classList.toggle("active", c.dataset.value === state.showTime));
+    }
+    if (savedGlobalSettings.cardBack !== undefined) {
+      state.cardBack = savedGlobalSettings.cardBack;
+      cardbackOptions.querySelectorAll(".back-swatch").forEach(s => s.classList.toggle("active", s.dataset.value === state.cardBack));
+    }
+    if (savedGlobalSettings.faceStyle !== undefined) {
+      state.faceStyle = savedGlobalSettings.faceStyle;
+      faceSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === state.faceStyle));
+      renderFacePreview();
+    }
+    if (savedGlobalSettings.tableBg !== undefined) {
+      state.tableBg = savedGlobalSettings.tableBg;
+      tableBgManual = true; // сохранённый выбор — это и есть ручной выбор, автотема больше не должна его перебивать
+      tableBgOptions.querySelectorAll(".option-chip").forEach(c => c.classList.toggle("active", c.dataset.value === state.tableBg));
+      applyTableBg();
+    }
+  }
 
   /* ===== Общий пикер карты (переиспользуется калькуляторами Ауты и Эквити) ===== */
 

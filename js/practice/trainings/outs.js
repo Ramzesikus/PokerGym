@@ -9,6 +9,7 @@ import { buildDeck, shuffle } from "../../core/deck.js";
 import { classifyCategories, computeOuts, displayCategoryIndex, CATEGORY_NAMES, evaluateBest } from "../../core/hand-eval.js";
 import { cardEl } from "../../ui/card.js";
 import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { loadSection, saveSection } from "../../core/storage.js";
 
   let currentDeal = null;
   let timerHandle = null;
@@ -431,6 +432,7 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
       streetSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       state.street = btn.dataset.value;
+      persistOutsSettings();
     });
   });
 
@@ -457,20 +459,43 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
     }
   }
 
+  function persistOutsSettings() {
+    saveSection("outs", {
+      wantNumber: state.wantNumber,
+      wantCategory: state.wantCategory,
+      wantPercategory: state.wantPercategory,
+      street: state.street,
+      outputMode: state.outputMode
+    });
+  }
+
+  const outputModeSwitch = document.getElementById("output-mode-switch");
+  outputModeSwitch.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      outputModeSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.outputMode = btn.dataset.value;
+      persistOutsSettings();
+    });
+  });
+
   wantNumberToggle.addEventListener("change", (e) => {
     state.wantNumber = e.target.checked;
     updatePercategoryAvailability();
     updateStartButtonState();
+    persistOutsSettings();
   });
 
   wantCategoryToggle.addEventListener("change", (e) => {
     state.wantCategory = e.target.checked;
     updatePercategoryAvailability();
     updateStartButtonState();
+    persistOutsSettings();
   });
 
   wantPercategoryToggle.addEventListener("change", (e) => {
     state.wantPercategory = e.target.checked;
+    persistOutsSettings();
   });
 
   document.getElementById("start-session").addEventListener("click", startSession);
@@ -505,9 +530,31 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
     if (settings.wantCategory !== undefined) state.wantCategory = settings.wantCategory;
     if (settings.wantPercategory !== undefined) state.wantPercategory = settings.wantPercategory;
     if (settings.street !== undefined) state.street = settings.street;
+    if (settings.outputMode !== undefined) state.outputMode = settings.outputMode;
   }
 
   registerTrainingEntry("outs", (settings) => {
     if (settings) applySettings(settings);
     startSession();
   });
+
+  // Восстановление сохранённых настроек при загрузке — до того, как пользователь
+  // что-либо нажмёт. Если ничего не сохранено (или версия не совпала) — остаются
+  // дефолтные значения из core/state.js, ничего специально обрабатывать не нужно.
+  const savedOutsSettings = loadSection("outs");
+  if (savedOutsSettings) {
+    applySettings(savedOutsSettings);
+    // applySettings меняет только state — чекбоксы сетап-экрана надо синхронизировать отдельно,
+    // иначе визуально будет показано не то, что реально применится при старте сессии.
+    wantNumberToggle.checked = state.wantNumber;
+    wantCategoryToggle.checked = state.wantCategory;
+    wantPercategoryToggle.checked = state.wantPercategory;
+    const savedStreetBtn = streetSwitch.querySelector(`button[data-value="${state.street}"]`);
+    if (savedStreetBtn) {
+      streetSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+      savedStreetBtn.classList.add("active");
+    }
+    outputModeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === state.outputMode));
+    updatePercategoryAvailability();
+    updateStartButtonState();
+  }

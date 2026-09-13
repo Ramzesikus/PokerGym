@@ -8,10 +8,15 @@ import { evaluateBest, getCoreCards, displayCategoryIndex, CATEGORY_NAMES, cardI
 import { cardEl } from "../../ui/card.js";
 import { pickTargetCategory, generateCardsForCategory } from "./outs.js";
 import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { loadSection, saveSection } from "../../core/storage.js";
 
   let comboState = { sublevel: "5", dealNum: 1, correctCount: 0, answeredCount: 0 };
   let currentComboDeal = null;
   let selectedComboIndex = null;
+
+  function persistCombinationsSettings() {
+    saveSection("identifyCombo", { sublevel: comboState.sublevel });
+  }
 
   const comboSublevelSwitch = document.getElementById("combo-sublevel-switch");
   comboSublevelSwitch.querySelectorAll("button").forEach(btn => {
@@ -19,6 +24,7 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
       comboSublevelSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       comboState.sublevel = btn.dataset.value;
+      persistCombinationsSettings();
     });
   });
 
@@ -200,3 +206,9 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
     if (settings) applySettings(settings);
     startComboSession();
   });
+
+  const savedComboSettings = loadSection("identifyCombo");
+  if (savedComboSettings) {
+    applySettings(savedComboSettings);
+    comboSublevelSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === comboState.sublevel));
+  }

@@ -6,6 +6,7 @@ import { dict } from "../../core/i18n.js";
 import { randomInt, shuffle } from "../../core/deck.js";
 import { posLabel, posTailSeats } from "../../core/positions.js";
 import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { loadSection, saveSection } from "../../core/storage.js";
 
   const POS_SEAT_COORDS = {
     2: [[50,85],[50,15]],
@@ -288,6 +289,15 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
 
   /* Настройки */
 
+  function persistPositionsSettings() {
+    saveSection("positions", {
+      minN: posState.minN,
+      maxN: posState.maxN,
+      format: posState.format,
+      school: posState.school
+    });
+  }
+
   const posFormatSwitch = document.getElementById("pos-format-switch");
   posFormatSwitch.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -295,6 +305,7 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
       posFormatSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       posState.format = btn.dataset.value;
+      persistPositionsSettings();
     });
   });
 
@@ -320,6 +331,7 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
       posSchoolSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       posState.school = btn.dataset.value;
+      persistPositionsSettings();
     });
   });
 
@@ -355,6 +367,7 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
     if (!validatePosRange()) return;
     posState.minN = parseInt(posNMin.value, 10);
     posState.maxN = parseInt(posNMax.value, 10);
+    persistPositionsSettings();
     runPositionsSession();
   });
 
@@ -381,3 +394,13 @@ import { showSubview, registerTrainingEntry } from "../practice-router.js";
     if (settings) applySettings(settings);
     runPositionsSession();
   });
+
+  const savedPositionsSettings = loadSection("positions");
+  if (savedPositionsSettings) {
+    applySettings(savedPositionsSettings);
+    if (posState.minN !== undefined) posNMin.value = posState.minN;
+    if (posState.maxN !== undefined) posNMax.value = posState.maxN;
+    posFormatSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === posState.format));
+    posSchoolSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === posState.school));
+    updatePosFormatAvailability();
+  }
