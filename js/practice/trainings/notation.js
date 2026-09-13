@@ -4,7 +4,7 @@
 
 import { state, RANKS, SUITS, RANK_VALUE } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
-import { pickRandom } from "../../core/deck.js";
+import { pickRandom, shuffle } from "../../core/deck.js";
 import { showSubview } from "../practice-router.js";
 import { cardEl } from "../../ui/card.js";
 
@@ -158,12 +158,12 @@ import { cardEl } from "../../ui/card.js";
     const targetArr = Array.from(token.targetSet);
     const maxCorrect = Math.min(3, targetArr.length);
     const correctCount = 1 + Math.floor(Math.random() * maxCorrect);
-    const correctCodes = posShuffle(targetArr).slice(0, correctCount);
+    const correctCodes = shuffle(targetArr).slice(0, correctCount);
 
-    const wrongPool = posShuffle(notAllHandCodes().filter(c => !token.targetSet.has(c)));
+    const wrongPool = shuffle(notAllHandCodes().filter(c => !token.targetSet.has(c)));
     const wrongCodes = wrongPool.slice(0, 3 - correctCount);
 
-    const candidates = posShuffle([...correctCodes, ...wrongCodes]).map(code => ({
+    const candidates = shuffle([...correctCodes, ...wrongCodes]).map(code => ({
       code,
       cards: notHandCodeToCards(code),
       inRange: token.targetSet.has(code),

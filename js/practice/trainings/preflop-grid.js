@@ -5,7 +5,7 @@
 
 import { state, RANKS } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
-import { pickRandom } from "../../core/deck.js";
+import { pickRandom, shuffle } from "../../core/deck.js";
 import { notHandCombos, wireNotSegmented, notGenRangeToken, notGenCompositeToken, notCellInfo } from "./notation.js";
 import { showSubview } from "../practice-router.js";
 
@@ -147,14 +147,14 @@ import { showSubview } from "../practice-router.js";
     let guard = 0;
     while (distractors.length < 3 && guard < 50) {
       guard++;
-      const factor = notPickRandom(factors);
+      const factor = pickRandom(factors);
       let val = Math.random() < 0.5 ? trueProb * factor : trueProb + (Math.random() < 0.5 ? 1 : -1) * (trueProb * 0.6 + 3);
       val = Math.max(0.1, Math.min(99.5, val));
       const rounded = Math.round(val * 10);
       if (!used.has(rounded)) { used.add(rounded); distractors.push(rounded / 10); }
     }
     const ratioOf = dict[state.lang]["notSession.ratioOf"] || "\u0438\u0437";
-    const all = posShuffle([Math.round(trueProb * 10) / 10, ...distractors]);
+    const all = shuffle([Math.round(trueProb * 10) / 10, ...distractors]);
     return all.map(v => ({
       label: unit === "ratio" ? "1 " + ratioOf + " " + (100 / v).toFixed(1) : v.toFixed(1) + "%",
       isCorrect: Math.abs(v - trueProb) < 0.05
