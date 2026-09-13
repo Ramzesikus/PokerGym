@@ -13,10 +13,34 @@ import { state } from "../core/state.js";
 
 const subviewHooks = {};
 let anySubviewCallback = null;
+const trainingEntryPoints = {};
+
+// Заранее сброшенный флаг: последний запуск тренировки шёл с готовыми настройками
+// извне (Обучариум), а не по клику пользователя из хаба. Пригодится, когда будет
+// построена реальная шестерёнка-модалка — она должна прятаться именно в этом случае.
+export let lastLaunchHadCustomSettings = false;
+
+// Вызывается каждой тренировкой при загрузке модуля: "вот моя функция запуска сессии".
+export function registerTrainingEntry(moduleId, runFn) {
+  trainingEntryPoints[moduleId] = runFn;
+}
+
+// Точка входа для программного запуска тренировки — сразу в сессию, минуя сетап.
+// customSettings — объект нужной для конкретной тренировки формы (см. DECISIONS.md),
+// null/не передан — тренировка запускается с текущими (по умолчанию/уже выставленными)
+// настройками, как если бы пользователь сам открыл её из хаба.
+export async function startTraining(moduleId, customSettings = null) {
+  const entry = trainingEntryPoints[moduleId];
+  if (!entry) {
+    console.warn("startTraining: нет зарегистрированной точки входа для", moduleId);
+    return;
+  }
+  lastLaunchHadCustomSettings = !!customSettings;
+  await entry(customSettings);
+}
 
 // Вызывается из файла тренировки при загрузке модуля: "когда покажется этот
-// под-экран — вызови эту функцию". Не заменяет точку входа для Обучариума
-// (startTraining/init) — та появится отдельно, при доработке роутера.
+// под-экран — вызови эту функцию".
 export function onSubviewShow(name, callback) {
   subviewHooks[name] = callback;
 }

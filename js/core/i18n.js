@@ -1,10 +1,6 @@
 // core/i18n.js
 // Словарь локализации RU/EN. Растёт вместе с каждой новой фичей — обновлять вместе
 // с любым новым текстом в интерфейсе.
-//
-// НАЙДЕНО ПРИ РАЗБОРЕ (не устранено здесь, см. ARCHITECTURE.md, BACKLOG-03):
-// есть ключи без соответствующего модуля в HUB_MODULES (module.identifyCategories.title,
-// module.handprob.title) — уточнить, заготовка на будущее или мусор, при следующем разборе.
 
 export const dict = {
     ru: {
@@ -19,8 +15,6 @@ export const dict = {
       "stub.soon": "Этот модуль ещё не готов",
       "module.identifyCombo.title": "Комбинации",
       "module.identifyCombo.sub": "5 карт \u00A0· рука+флоп/тёрн/ривер",
-      "module.identifyCategories.title": "Идентификация категорий усиления",
-      "module.identifyCategories.sub": "Дро и прочие ауты, без чисел",
       "module.outs.title": "Ауты и вероятность",
       "module.outs.sub": "На следующую карту · варианты А, Б, В",
       "module.preflop.title": "Стартовые руки префлопа",
@@ -79,8 +73,6 @@ export const dict = {
       "hub.pinRemove": "Убрать из своей программы",
       "hub.compactOn": "Свернуть в плитки",
       "hub.compactOff": "Показать полностью",
-      "module.handprob.title": "Вероятность раздачи",
-      "module.handprob.sub": "Как часто выпадает такая рука",
       "module.opphand.title": "Рука противника",
       "module.opphand.sub": "Какие комбинации реалистичны",
       "module.calcOuts.title": "Ауты",
@@ -420,8 +412,6 @@ export const dict = {
       "stub.soon": "This module isn't ready yet",
       "module.identifyCombo.title": "Combinations",
       "module.identifyCombo.sub": "5 cards \u00A0· hand+flop/turn/river",
-      "module.identifyCategories.title": "Identify improvement categories",
-      "module.identifyCategories.sub": "Draws and other outs, no numbers",
       "module.outs.title": "Outs and probability",
       "module.outs.sub": "Next card · variants A, B, C",
       "module.preflop.title": "Preflop starting hands",
@@ -480,8 +470,6 @@ export const dict = {
       "hub.pinRemove": "Remove from my program",
       "hub.compactOn": "Collapse to tiles",
       "hub.compactOff": "Show in full",
-      "module.handprob.title": "Hand probability",
-      "module.handprob.sub": "How often you're dealt this hand",
       "module.opphand.title": "Opponent's hand",
       "module.opphand.sub": "What hands are realistic",
       "module.calcOuts.title": "Outs",

@@ -3,12 +3,12 @@
 // -logic.js/-ui.js отложено — приоритет сейчас: рабочее приложение целиком,
 // см. ARCHITECTURE.md).
 
-import { state, RANK_VALUE, SUITS } from "../../core/state.js";
+import { state, RANK_VALUE, SUITS, DRAW_TYPES, OTHER_OUT_TYPES } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { buildDeck, shuffle } from "../../core/deck.js";
 import { classifyCategories, computeOuts, displayCategoryIndex, CATEGORY_NAMES, evaluateBest } from "../../core/hand-eval.js";
 import { cardEl } from "../../ui/card.js";
-import { showSubview } from "../practice-router.js";
+import { showSubview, registerTrainingEntry } from "../practice-router.js";
 
   let currentDeal = null;
   let timerHandle = null;
@@ -132,6 +132,37 @@ import { showSubview } from "../practice-router.js";
   handRowPeekEl.addEventListener("pointerleave", peekHandEnd);
   handRowPeekEl.addEventListener("pointercancel", peekHandEnd);
 
+  function createCategoryChip(type) {
+    const chip = document.createElement("div");
+    chip.className = "dry-chip-2col";
+    chip.dataset.type = type;
+
+    const label = document.createElement("span");
+    label.className = "chip-label-text";
+    label.textContent = dict[state.lang]["dry." + type];
+    chip.appendChild(label);
+
+    let input = null;
+    if (state.wantPercategory) {
+      input = document.createElement("input");
+      input.type = "number";
+      input.className = "chip-inline-input per-type-answer";
+      input.dataset.type = type;
+      input.style.visibility = "hidden";
+      input.addEventListener("click", e => e.stopPropagation());
+      input.addEventListener("mousedown", e => e.stopPropagation());
+      chip.appendChild(input);
+    }
+
+    chip.addEventListener("click", (e) => {
+      if (input && e.target === input) return;
+      chip.classList.toggle("active");
+      if (input) input.style.visibility = chip.classList.contains("active") ? "visible" : "hidden";
+    });
+
+    return chip;
+  }
+
   function renderAnswerArea() {
     const area = document.getElementById("answer-area");
     area.innerHTML = "";
@@ -185,7 +216,7 @@ import { showSubview } from "../practice-router.js";
     document.getElementById("session-progress").textContent = state.dealNum + " / 10";
   }
 
-  function startSession() {
+  export function startSession() {
     state.dealNum = 1;
     state.correctCount = 0;
     state.answeredCount = 0;
@@ -466,3 +497,17 @@ import { showSubview } from "../practice-router.js";
       }
     }
   }
+
+  // Точка входа для программного запуска (Обучариум) — см. DECISIONS.md.
+  // settings: { wantNumber, wantCategory, wantPercategory, street }
+  export function applySettings(settings) {
+    if (settings.wantNumber !== undefined) state.wantNumber = settings.wantNumber;
+    if (settings.wantCategory !== undefined) state.wantCategory = settings.wantCategory;
+    if (settings.wantPercategory !== undefined) state.wantPercategory = settings.wantPercategory;
+    if (settings.street !== undefined) state.street = settings.street;
+  }
+
+  registerTrainingEntry("outs", (settings) => {
+    if (settings) applySettings(settings);
+    startSession();
+  });

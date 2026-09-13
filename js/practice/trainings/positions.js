@@ -5,7 +5,7 @@ import { state, RANKS, SUITS } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { randomInt, shuffle } from "../../core/deck.js";
 import { posLabel, posTailSeats } from "../../core/positions.js";
-import { showSubview } from "../practice-router.js";
+import { showSubview, registerTrainingEntry } from "../practice-router.js";
 
   const POS_SEAT_COORDS = {
     2: [[50,85],[50,15]],
@@ -346,12 +346,16 @@ import { showSubview } from "../practice-router.js";
   posNMin.addEventListener("change", validatePosRange);
   posNMax.addEventListener("change", validatePosRange);
 
+  export function runPositionsSession() {
+    showSubview("session-positions");
+    dealNewPositionsRound();
+  }
+
   document.getElementById("start-positions-session").addEventListener("click", () => {
     if (!validatePosRange()) return;
     posState.minN = parseInt(posNMin.value, 10);
     posState.maxN = parseInt(posNMax.value, 10);
-    showSubview("session-positions");
-    dealNewPositionsRound();
+    runPositionsSession();
   });
 
   document.getElementById("pos-next-deal").addEventListener("click", dealNewPositionsRound);
@@ -363,3 +367,17 @@ import { showSubview } from "../practice-router.js";
     updatePosFormatAvailability();
     if (posState.n) { renderPositionsOptions(); updatePositionsProgress(); }
   }
+
+  // Точка входа для программного запуска (Обучариум) — см. DECISIONS.md.
+  // settings: { minN, maxN, format, school }
+  export function applySettings(settings) {
+    if (settings.minN !== undefined) posState.minN = settings.minN;
+    if (settings.maxN !== undefined) posState.maxN = settings.maxN;
+    if (settings.format !== undefined) posState.format = settings.format;
+    if (settings.school !== undefined) posState.school = settings.school;
+  }
+
+  registerTrainingEntry("positions", (settings) => {
+    if (settings) applySettings(settings);
+    runPositionsSession();
+  });

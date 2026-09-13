@@ -5,7 +5,7 @@
 import { state, RANKS, SUITS, RANK_VALUE } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { pickRandom, shuffle } from "../../core/deck.js";
-import { showSubview } from "../practice-router.js";
+import { showSubview, registerTrainingEntry } from "../practice-router.js";
 import { cardEl } from "../../ui/card.js";
 
 
@@ -408,7 +408,7 @@ export function notHandCombos(code) {
 
   updateNotTokenBlockVisibility();
 
-  document.getElementById("start-notation-session").addEventListener("click", () => {
+  export function runNotationSession() {
     if (notState.mode === "single") {
       showSubview("session-notation-single");
       dealNotationSingleRound();
@@ -416,5 +416,21 @@ export function notHandCombos(code) {
       showSubview("session-notation-multi");
       dealNotationMultiRound();
     }
-  });
+  }
 
+  document.getElementById("start-notation-session").addEventListener("click", runNotationSession);
+
+
+  // Точка входа для программного запуска (Обучариум) — см. DECISIONS.md.
+  // settings: { mode, rankPool, pairs, tokenType }
+  export function applySettings(settings) {
+    if (settings.mode !== undefined) notState.mode = settings.mode;
+    if (settings.rankPool !== undefined) notState.rankPool = settings.rankPool;
+    if (settings.pairs !== undefined) notState.pairs = settings.pairs;
+    if (settings.tokenType !== undefined) notState.tokenType = settings.tokenType;
+  }
+
+  registerTrainingEntry("notation", (settings) => {
+    if (settings) applySettings(settings);
+    runNotationSession();
+  });

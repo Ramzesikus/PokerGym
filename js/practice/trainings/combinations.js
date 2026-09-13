@@ -7,7 +7,7 @@ import { dict } from "../../core/i18n.js";
 import { evaluateBest, getCoreCards, displayCategoryIndex, CATEGORY_NAMES, cardId } from "../../core/hand-eval.js";
 import { cardEl } from "../../ui/card.js";
 import { pickTargetCategory, generateCardsForCategory } from "./outs.js";
-import { showSubview } from "../practice-router.js";
+import { showSubview, registerTrainingEntry } from "../practice-router.js";
 
   let comboState = { sublevel: "5", dealNum: 1, correctCount: 0, answeredCount: 0 };
   let currentComboDeal = null;
@@ -145,7 +145,7 @@ import { showSubview } from "../practice-router.js";
     document.getElementById("combo-session-progress").textContent = comboState.dealNum + " / 10";
   }
 
-  function startComboSession() {
+  export function startComboSession() {
     comboState.dealNum = 1;
     comboState.correctCount = 0;
     comboState.answeredCount = 0;
@@ -189,3 +189,14 @@ import { showSubview } from "../practice-router.js";
   export function refreshLanguageDisplay() {
     if (currentComboDeal) { renderComboCards(); renderComboOptions(); updateComboContext(); }
   }
+
+  // Точка входа для программного запуска (Обучариум) — см. DECISIONS.md.
+  // settings: { sublevel }
+  export function applySettings(settings) {
+    if (settings.sublevel !== undefined) comboState.sublevel = settings.sublevel;
+  }
+
+  registerTrainingEntry("identify-combo", (settings) => {
+    if (settings) applySettings(settings);
+    startComboSession();
+  });

@@ -7,7 +7,7 @@ import { state, RANKS } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { pickRandom, shuffle } from "../../core/deck.js";
 import { notHandCombos, wireNotSegmented, notGenRangeToken, notGenCompositeToken, notCellInfo } from "./notation.js";
-import { showSubview } from "../practice-router.js";
+import { showSubview, registerTrainingEntry } from "../practice-router.js";
 
   const pfState = {
     rankPool: "all",
@@ -320,8 +320,27 @@ import { showSubview } from "../practice-router.js";
 
   updatePfSetupVisibility();
 
-  document.getElementById("start-preflop-session").addEventListener("click", () => {
+  export function runPreflopSession() {
     showSubview("session-notation-range");
     dealNotationRangeRound();
-  });
+  }
 
+  document.getElementById("start-preflop-session").addEventListener("click", runPreflopSession);
+
+
+  // Точка входа для программного запуска (Обучариум) — см. DECISIONS.md.
+  // settings: { rankPool, pairs, tokenType, rangeComplexity, showMode, probUnit, probInput }
+  export function applySettings(settings) {
+    if (settings.rankPool !== undefined) pfState.rankPool = settings.rankPool;
+    if (settings.pairs !== undefined) pfState.pairs = settings.pairs;
+    if (settings.tokenType !== undefined) pfState.tokenType = settings.tokenType;
+    if (settings.rangeComplexity !== undefined) pfState.rangeComplexity = settings.rangeComplexity;
+    if (settings.showMode !== undefined) pfState.showMode = settings.showMode;
+    if (settings.probUnit !== undefined) pfState.probUnit = settings.probUnit;
+    if (settings.probInput !== undefined) pfState.probInput = settings.probInput;
+  }
+
+  registerTrainingEntry("preflop-table", (settings) => {
+    if (settings) applySettings(settings);
+    runPreflopSession();
+  });
