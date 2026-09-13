@@ -13,20 +13,45 @@
     <button class="back-btn" id="back-btn" aria-label="Назад">
       <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M15 6l-6 6 6 6"/></svg>
     </button>
+
     <h1 id="header-title" data-i18n="tab.free">Практика</h1>
-    <button class="hub-compact-toggle" id="hub-compact-toggle" aria-label="Свернуть в плитки">
-      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
-    </button>
-    <button class="header-done-btn" id="hub-done-btn" data-i18n="hub.done">Готово</button>
+    <div class="header-wordmark show" id="header-wordmark">
+      <span class="wordmark-poker">Poker</span><span class="wordmark-gym">Gym</span>
+    </div>
+
+    <div class="header-right-cluster">
+      <button class="header-info-btn show" id="header-info-btn" aria-label="Информация">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
+      </button>
+      <button class="hub-compact-toggle" id="hub-compact-toggle" aria-label="Свернуть в плитки">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+      </button>
+      <button class="header-done-btn" id="hub-done-btn" data-i18n="hub.done">Готово</button>
+      <button class="header-gear-btn" id="header-gear-btn" aria-label="Настройки тренировки">
+        <svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="header-login-btn show" id="header-login-btn" aria-label="Войти">
+        <img src="assets/logo/login-icon.svg" width="22" height="22" alt="" aria-hidden="true">
+      </button>
+    </div>
   </header>
 
   <main>
 
     <div class="screen" data-screen="campaign">
-      <button class="info-icon-btn" id="open-intro-info" aria-label="О тренажёре">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" ><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
-      </button>
       <div class="stub" data-i18n="stub.campaign">Кампания — пусто</div>
+    </div>
+
+    <div class="modal-overlay" id="login-soon-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span data-i18n="login.soonTitle">Вход</span>
+          <button class="modal-close" id="close-login-soon-modal" aria-label="Закрыть">
+            <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <p data-i18n="login.soonBody">Вход в аккаунт появится позже.</p>
+      </div>
     </div>
 
     <div class="modal-overlay" id="intro-modal">
@@ -50,6 +75,9 @@
             <li>Тренирует моментальный расчёт аутов и удержание карт в памяти.</li>
           </ul>
           <p class="intro-closing">Постройте свой математический фундамент. Удачи за столами!</p>
+          <hr class="intro-divider">
+          <p class="intro-subhead">Обратная связь</p>
+          <p>Нашли баг или есть идея? Напишите: <a href="mailto:feedback@pokergym.app">feedback@pokergym.app</a></p>
         </div>
       </div>
     </div>
@@ -64,49 +92,62 @@
         <div class="stub" data-i18n="stub.soon">Этот модуль ещё не готов</div>
       </div>
 
-      <div class="subview" data-subview="setup">
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="setup.street">Улица</div>
-          <div class="segmented" id="street-switch">
-            <button data-value="flop" class="active" data-i18n="setup.flop">Флоп</button>
-            <button data-value="turn" data-i18n="setup.turn">Тёрн</button>
+      <div class="modal-overlay" id="outs-settings-modal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <span data-i18n="setup.outsSettingsTitle">Настройки: Ауты</span>
+            <button class="modal-close" id="outs-settings-cancel-x" aria-label="Закрыть">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="setup.street">Улица</div>
+            <div class="segmented" id="street-switch">
+              <button data-value="flop" class="active" data-i18n="setup.flop">Флоп</button>
+              <button data-value="turn" data-i18n="setup.turn">Тёрн</button>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <div class="row">
+              <span class="row-label" data-i18n="setup.wantNumber">Число</span>
+              <label class="switch">
+                <input type="checkbox" id="want-number-toggle" checked>
+                <span class="switch-track"></span>
+              </label>
+            </div>
+            <div class="row" style="margin-top:12px;">
+              <span class="row-label" data-i18n="setup.wantCategory">Категория</span>
+              <label class="switch">
+                <input type="checkbox" id="want-category-toggle">
+                <span class="switch-track"></span>
+              </label>
+            </div>
+            <div class="row" style="margin-top:12px;" id="want-percategory-row">
+              <span class="row-label" data-i18n="setup.wantPerCategory">Числа по категориям</span>
+              <label class="switch">
+                <input type="checkbox" id="want-percategory-toggle" disabled>
+                <span class="switch-track"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="settings.outputMode">Режим вывода</div>
+            <div class="segmented" id="output-mode-switch">
+              <button data-value="outs" class="active" data-i18n="settings.outs">Ауты</button>
+              <button data-value="probability" data-i18n="settings.probability">Вероятность</button>
+            </div>
+          </div>
+
+          <div class="error-text" id="start-disabled-note" style="display:none;" data-i18n="setup.needAtLeastOne">Включи хотя бы «Число» или «Категорию»</div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" id="outs-settings-cancel" data-i18n="setup.cancel">Отмена</button>
+            <button class="primary-btn" id="outs-settings-ok" data-i18n="setup.ok" disabled>Ок</button>
           </div>
         </div>
-
-        <div class="setting-block">
-          <div class="row">
-            <span class="row-label" data-i18n="setup.wantNumber">Число</span>
-            <label class="switch">
-              <input type="checkbox" id="want-number-toggle" checked>
-              <span class="switch-track"></span>
-            </label>
-          </div>
-          <div class="row" style="margin-top:12px;">
-            <span class="row-label" data-i18n="setup.wantCategory">Категория</span>
-            <label class="switch">
-              <input type="checkbox" id="want-category-toggle">
-              <span class="switch-track"></span>
-            </label>
-          </div>
-          <div class="row" style="margin-top:12px;" id="want-percategory-row">
-            <span class="row-label" data-i18n="setup.wantPerCategory">Числа по категориям</span>
-            <label class="switch">
-              <input type="checkbox" id="want-percategory-toggle" disabled>
-              <span class="switch-track"></span>
-            </label>
-          </div>
-        </div>
-
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="settings.outputMode">Режим вывода</div>
-          <div class="segmented" id="output-mode-switch">
-            <button data-value="outs" class="active" data-i18n="settings.outs">Ауты</button>
-            <button data-value="probability" data-i18n="settings.probability">Вероятность</button>
-          </div>
-        </div>
-
-        <button class="primary-btn" id="start-session" data-i18n="setup.start">Начать</button>
-        <div class="error-text" id="start-disabled-note" style="display:none;" data-i18n="setup.needAtLeastOne">Включи хотя бы «Число» или «Категорию»</div>
       </div>
 
       <div class="subview" data-subview="session">
@@ -149,57 +190,69 @@
         </div>
       </div>
 
-      <div class="subview" data-subview="setup-positions">
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="posSetup.range">Число игроков</div>
-          <div class="pos-select-row">
-            <div class="pos-select-col">
-              <span class="pos-select-label" data-i18n="posSetup.from">От</span>
-              <select class="pos-select" id="pos-n-min">
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6" selected>6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-              </select>
+      <div class="modal-overlay" id="positions-settings-modal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <span data-i18n="posSetup.settingsTitle">Настройки: Позиции</span>
+            <button class="modal-close" id="positions-settings-cancel-x" aria-label="Закрыть">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="posSetup.range">Число игроков</div>
+            <div class="pos-select-row">
+              <div class="pos-select-col">
+                <span class="pos-select-label" data-i18n="posSetup.from">От</span>
+                <select class="pos-select" id="pos-n-min">
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6" selected>6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                </select>
+              </div>
+              <div class="pos-select-col">
+                <span class="pos-select-label" data-i18n="posSetup.to">До</span>
+                <select class="pos-select" id="pos-n-max">
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6" selected>6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                </select>
+              </div>
             </div>
-            <div class="pos-select-col">
-              <span class="pos-select-label" data-i18n="posSetup.to">До</span>
-              <select class="pos-select" id="pos-n-max">
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6" selected>6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-              </select>
+            <div class="error-text" id="pos-range-error"></div>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="posSetup.format">Формат отображения</div>
+            <div class="segmented" id="pos-format-switch">
+              <button data-value="short" class="active" data-i18n="posSetup.formatShort">Кратко</button>
+              <button data-value="full" data-i18n="posSetup.formatFull">Полно</button>
             </div>
           </div>
-          <div class="error-text" id="pos-range-error"></div>
-        </div>
 
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="posSetup.format">Формат отображения</div>
-          <div class="segmented" id="pos-format-switch">
-            <button data-value="short" class="active" data-i18n="posSetup.formatShort">Кратко</button>
-            <button data-value="full" data-i18n="posSetup.formatFull">Полно</button>
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="posSetup.school">Школа названий</div>
+            <div class="segmented" id="pos-school-switch">
+              <button data-value="old" class="active" data-i18n="posSetup.schoolOld">Старая (MP)</button>
+              <button data-value="new" data-i18n="posSetup.schoolNew">Новая (LJ)</button>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" id="positions-settings-cancel" data-i18n="setup.cancel">Отмена</button>
+            <button class="primary-btn" id="positions-settings-ok" data-i18n="setup.ok" disabled>Ок</button>
           </div>
         </div>
-
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="posSetup.school">Школа названий</div>
-          <div class="segmented" id="pos-school-switch">
-            <button data-value="old" class="active" data-i18n="posSetup.schoolOld">Старая (MP)</button>
-            <button data-value="new" data-i18n="posSetup.schoolNew">Новая (LJ)</button>
-          </div>
-        </div>
-
-        <button class="primary-btn" id="start-positions-session" data-i18n="setup.start">Начать</button>
       </div>
 
       <div class="subview" data-subview="session-positions">
@@ -233,47 +286,67 @@
         </div>
       </div>
 
-      <div class="subview" data-subview="setup-notation">
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="notSetup.mode">Тип тренировки</div>
-          <div class="segmented" id="not-mode-switch">
-            <button data-value="single" class="active" data-i18n="notSetup.modeSingle">Одна карта</button>
-            <button data-value="multi" data-i18n="notSetup.modeMulti">Несколько карт</button>
+      <div class="modal-overlay" id="notation-settings-modal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <span data-i18n="notSetup.settingsTitle">Настройки: Нотация</span>
+            <button class="modal-close" id="notation-settings-cancel-x" aria-label="Закрыть">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="notSetup.mode">Тип тренировки</div>
+            <div class="segmented" id="not-mode-switch">
+              <button data-value="single" class="active" data-i18n="notSetup.modeSingle">Одна карта</button>
+              <button data-value="multi" data-i18n="notSetup.modeMulti">Несколько карт</button>
+            </div>
+          </div>
+
+          <div class="setting-section-title" data-i18n="notSetup.sectionCards">Карты</div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="notSetup.rankPool">Диапазон рангов</div>
+            <div class="segmented" id="not-rankpool-switch">
+              <button data-value="all" class="active" data-i18n="notSetup.rankPoolAll">Все (2–A)</button>
+              <button data-value="faces" data-i18n="notSetup.rankPoolFaces">J+</button>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="notSetup.pairs">Пары</div>
+            <div class="segmented" id="not-pairs-switch">
+              <button data-value="on" class="active" data-i18n="notSetup.pairsOn">Включать</button>
+              <button data-value="off" data-i18n="notSetup.pairsOff">Не включать</button>
+            </div>
+          </div>
+
+          <div class="setting-block" id="not-token-block">
+            <div class="setting-label" data-i18n="notSetup.tokenType">Тип элемента диапазона</div>
+            <div class="segmented segmented-4" id="not-token-switch">
+              <button data-value="pair" class="active" data-i18n="notSetup.tokenPair">Пары</button>
+              <button data-value="suited" data-i18n="notSetup.tokenSuited">Suited</button>
+              <button data-value="offsuit" data-i18n="notSetup.tokenOffsuit">Offsuit</button>
+              <button data-value="mix" data-i18n="notSetup.tokenMix">Микс</button>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" id="notation-settings-cancel" data-i18n="setup.cancel">Отмена</button>
+            <button class="primary-btn" id="notation-settings-ok" data-i18n="setup.ok" disabled>Ок</button>
           </div>
         </div>
-
-        <div class="setting-section-title" data-i18n="notSetup.sectionCards">Карты</div>
-
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="notSetup.rankPool">Диапазон рангов</div>
-          <div class="segmented" id="not-rankpool-switch">
-            <button data-value="all" class="active" data-i18n="notSetup.rankPoolAll">Все (2–A)</button>
-            <button data-value="faces" data-i18n="notSetup.rankPoolFaces">J+</button>
-          </div>
-        </div>
-
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="notSetup.pairs">Пары</div>
-          <div class="segmented" id="not-pairs-switch">
-            <button data-value="on" class="active" data-i18n="notSetup.pairsOn">Включать</button>
-            <button data-value="off" data-i18n="notSetup.pairsOff">Не включать</button>
-          </div>
-        </div>
-
-        <div class="setting-block" id="not-token-block">
-          <div class="setting-label" data-i18n="notSetup.tokenType">Тип элемента диапазона</div>
-          <div class="segmented segmented-4" id="not-token-switch">
-            <button data-value="pair" class="active" data-i18n="notSetup.tokenPair">Пары</button>
-            <button data-value="suited" data-i18n="notSetup.tokenSuited">Suited</button>
-            <button data-value="offsuit" data-i18n="notSetup.tokenOffsuit">Offsuit</button>
-            <button data-value="mix" data-i18n="notSetup.tokenMix">Микс</button>
-          </div>
-        </div>
-
-        <button class="primary-btn" id="start-notation-session" data-i18n="setup.start">Начать</button>
       </div>
 
-      <div class="subview" data-subview="setup-preflop">
+      <div class="modal-overlay" id="preflop-settings-modal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <span data-i18n="notSetup.preflopSettingsTitle">Настройки: Матрица префлопа</span>
+            <button class="modal-close" id="preflop-settings-cancel-x" aria-label="Закрыть">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+
         <div class="setting-block">
           <div class="setting-label" data-i18n="notSetup.showMode">Что показывать</div>
           <div class="segmented" id="not-show-switch">
@@ -371,7 +444,12 @@
           </select>
         </div>
 
-        <button class="primary-btn" id="start-preflop-session" data-i18n="setup.start">Начать</button>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" id="preflop-settings-cancel" data-i18n="setup.cancel">Отмена</button>
+            <button class="primary-btn" id="preflop-settings-ok" data-i18n="setup.ok" disabled>Ок</button>
+          </div>
+        </div>
       </div>
 
       <div class="subview" data-subview="session-notation-single">
@@ -478,17 +556,28 @@
         </div>
       </div>
 
-      <div class="subview" data-subview="setup-combo">
-        <div class="setting-block">
-          <div class="setting-label" data-i18n="setup.sublevel">Подуровень</div>
-          <div class="sublevel-grid" id="combo-sublevel-switch">
-            <button data-value="5" class="active" data-i18n="setup.sublevel5">5 карт</button>
-            <button data-value="flop" data-i18n="setup.sublevelFlop">Рука+флоп</button>
-            <button data-value="turn" data-i18n="setup.sublevelTurn">Рука+тёрн</button>
-            <button data-value="river" data-i18n="setup.sublevelRiver">Рука+ривер</button>
+      <div class="modal-overlay" id="combo-settings-modal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <span data-i18n="setup.comboSettingsTitle">Настройки: Комбинации</span>
+            <button class="modal-close" id="combo-settings-cancel-x" aria-label="Закрыть">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="setup.sublevel">Подуровень</div>
+            <div class="sublevel-grid" id="combo-sublevel-switch">
+              <button data-value="5" class="active" data-i18n="setup.sublevel5">5 карт</button>
+              <button data-value="flop" data-i18n="setup.sublevelFlop">Рука+флоп</button>
+              <button data-value="turn" data-i18n="setup.sublevelTurn">Рука+тёрн</button>
+              <button data-value="river" data-i18n="setup.sublevelRiver">Рука+ривер</button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="secondary-btn" id="combo-settings-cancel" data-i18n="setup.cancel">Отмена</button>
+            <button class="primary-btn" id="combo-settings-ok" data-i18n="setup.ok" disabled>Ок</button>
           </div>
         </div>
-        <button class="primary-btn" id="start-combo-session" data-i18n="setup.start">Начать</button>
       </div>
 
       <div class="subview" data-subview="session-combo">

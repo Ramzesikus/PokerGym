@@ -29,6 +29,13 @@ import "./stats/stats.js";
     document.getElementById("intro-modal").classList.remove("show");
   });
 
-  document.getElementById("open-intro-info").addEventListener("click", () => {
+  document.getElementById("header-info-btn").addEventListener("click", () => {
     document.getElementById("intro-modal").classList.add("show");
+  });
+
+  document.getElementById("header-login-btn").addEventListener("click", () => {
+    document.getElementById("login-soon-modal").classList.add("show");
+  });
+  document.getElementById("close-login-soon-modal").addEventListener("click", () => {
+    document.getElementById("login-soon-modal").classList.remove("show");
   });

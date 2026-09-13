@@ -7,7 +7,7 @@ import { state, RANKS } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { pickRandom, shuffle } from "../../core/deck.js";
 import { notHandCombos, wireNotSegmented, notGenRangeToken, notGenCompositeToken, notCellInfo } from "./notation.js";
-import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 
   const pfState = {
@@ -292,32 +292,49 @@ import { loadSection, saveSection } from "../../core/storage.js";
     });
   }
 
-  wireNotSegmented(document.getElementById("not-show-switch"), v => {
+  function getPreflopSettings() {
+    return {
+      rankPool: pfState.rankPool, pairs: pfState.pairs, tokenType: pfState.tokenType,
+      rangeComplexity: pfState.rangeComplexity, showMode: pfState.showMode,
+      probUnit: pfState.probUnit, probInput: pfState.probInput,
+      tolerancePct: pfState.tolerancePct, toleranceRatio: pfState.toleranceRatio
+    };
+  }
+
+  const notShowSwitch = document.getElementById("not-show-switch");
+  const pfRankpoolSwitch = document.getElementById("pf-rankpool-switch");
+  const pfComplexitySwitch = document.getElementById("pf-complexity-switch");
+  const pfUnitSwitch = document.getElementById("pf-unit-switch");
+  const pfInputSwitch = document.getElementById("pf-input-switch");
+  const pfTolerancePctSelect = document.getElementById("pf-tolerance-pct-select");
+  const pfToleranceRatioSelect = document.getElementById("pf-tolerance-ratio-select");
+
+  wireNotSegmented(notShowSwitch, v => {
     pfState.showMode = v;
     updatePfSetupVisibility();
-    persistPreflopSettings();
+    checkPreflopSettingsDirty();
   });
-  wireNotSegmented(document.getElementById("pf-rankpool-switch"), v => { pfState.rankPool = v; persistPreflopSettings(); });
-  wireNotSegmented(pfTokenSwitch, v => { pfState.tokenType = v; persistPreflopSettings(); });
-  wireNotSegmented(document.getElementById("pf-complexity-switch"), v => { pfState.rangeComplexity = v; persistPreflopSettings(); });
-  wireNotSegmented(document.getElementById("pf-unit-switch"), v => {
+  wireNotSegmented(pfRankpoolSwitch, v => { pfState.rankPool = v; checkPreflopSettingsDirty(); });
+  wireNotSegmented(pfTokenSwitch, v => { pfState.tokenType = v; checkPreflopSettingsDirty(); });
+  wireNotSegmented(pfComplexitySwitch, v => { pfState.rangeComplexity = v; checkPreflopSettingsDirty(); });
+  wireNotSegmented(pfUnitSwitch, v => {
     pfState.probUnit = v;
     updatePfSetupVisibility();
-    persistPreflopSettings();
+    checkPreflopSettingsDirty();
   });
-  wireNotSegmented(document.getElementById("pf-input-switch"), v => {
+  wireNotSegmented(pfInputSwitch, v => {
     pfState.probInput = v;
     updatePfSetupVisibility();
-    persistPreflopSettings();
+    checkPreflopSettingsDirty();
   });
 
-  document.getElementById("pf-tolerance-pct-select").addEventListener("change", e => {
+  pfTolerancePctSelect.addEventListener("change", e => {
     pfState.tolerancePct = parseFloat(e.target.value);
-    persistPreflopSettings();
+    checkPreflopSettingsDirty();
   });
-  document.getElementById("pf-tolerance-ratio-select").addEventListener("change", e => {
+  pfToleranceRatioSelect.addEventListener("change", e => {
     pfState.toleranceRatio = parseFloat(e.target.value);
-    persistPreflopSettings();
+    checkPreflopSettingsDirty();
   });
 
   function updatePfTokenPairAvailability() {
@@ -336,7 +353,7 @@ import { loadSection, saveSection } from "../../core/storage.js";
   wireNotSegmented(pfPairsSwitch, v => {
     pfState.pairs = v;
     updatePfTokenPairAvailability();
-    persistPreflopSettings();
+    checkPreflopSettingsDirty();
   });
 
   updatePfSetupVisibility();
@@ -346,7 +363,49 @@ import { loadSection, saveSection } from "../../core/storage.js";
     dealNotationRangeRound();
   }
 
-  document.getElementById("start-preflop-session").addEventListener("click", runPreflopSession);
+  // --- Модалка настроек (шестерёнка) ---
+  let preflopSettingsSnapshot = null;
+
+  function syncPreflopSettingsUI(s) {
+    notShowSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.showMode));
+    pfRankpoolSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.rankPool));
+    pfTokenSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.tokenType));
+    pfComplexitySwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.rangeComplexity));
+    pfUnitSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.probUnit));
+    pfInputSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.probInput));
+    pfPairsSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.pairs));
+    pfTolerancePctSelect.value = s.tolerancePct;
+    pfToleranceRatioSelect.value = s.toleranceRatio;
+    updatePfSetupVisibility();
+    updatePfTokenPairAvailability();
+  }
+
+  function checkPreflopSettingsDirty() {
+    const changed = preflopSettingsSnapshot && JSON.stringify(getPreflopSettings()) !== JSON.stringify(preflopSettingsSnapshot);
+    document.getElementById("preflop-settings-ok").disabled = !changed;
+  }
+
+  function openPreflopSettingsModal() {
+    preflopSettingsSnapshot = getPreflopSettings();
+    document.getElementById("preflop-settings-modal").classList.add("show");
+    checkPreflopSettingsDirty();
+  }
+  function closePreflopSettingsModal() {
+    document.getElementById("preflop-settings-modal").classList.remove("show");
+  }
+  document.getElementById("preflop-settings-ok").addEventListener("click", () => {
+    persistPreflopSettings();
+    closePreflopSettingsModal();
+    runPreflopSession();
+  });
+  function cancelPreflopSettings() {
+    applySettings(preflopSettingsSnapshot);
+    syncPreflopSettingsUI(preflopSettingsSnapshot);
+    closePreflopSettingsModal();
+  }
+  document.getElementById("preflop-settings-cancel").addEventListener("click", cancelPreflopSettings);
+  document.getElementById("preflop-settings-cancel-x").addEventListener("click", cancelPreflopSettings);
+  registerGearProvider("session-notation-range", openPreflopSettingsModal);
 
 
   // Точка входа для программного запуска (Обучариум) — см. DECISIONS.md.
@@ -371,15 +430,5 @@ import { loadSection, saveSection } from "../../core/storage.js";
   const savedPreflopSettings = loadSection("preflopTable");
   if (savedPreflopSettings) {
     applySettings(savedPreflopSettings);
-    document.getElementById("not-show-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.showMode));
-    document.getElementById("pf-rankpool-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.rankPool));
-    pfTokenSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.tokenType));
-    document.getElementById("pf-complexity-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.rangeComplexity));
-    document.getElementById("pf-unit-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.probUnit));
-    document.getElementById("pf-input-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.probInput));
-    pfPairsSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === pfState.pairs));
-    document.getElementById("pf-tolerance-pct-select").value = pfState.tolerancePct;
-    document.getElementById("pf-tolerance-ratio-select").value = pfState.toleranceRatio;
-    updatePfSetupVisibility();
-    updatePfTokenPairAvailability();
+    syncPreflopSettingsUI(getPreflopSettings());
   }

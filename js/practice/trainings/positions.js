@@ -5,7 +5,7 @@ import { state, RANKS, SUITS } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { randomInt, shuffle } from "../../core/deck.js";
 import { posLabel, posTailSeats } from "../../core/positions.js";
-import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 
   const POS_SEAT_COORDS = {
@@ -298,6 +298,10 @@ import { loadSection, saveSection } from "../../core/storage.js";
     });
   }
 
+  function getPositionsSettings() {
+    return { minN: posState.minN, maxN: posState.maxN, format: posState.format, school: posState.school };
+  }
+
   const posFormatSwitch = document.getElementById("pos-format-switch");
   posFormatSwitch.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -305,7 +309,7 @@ import { loadSection, saveSection } from "../../core/storage.js";
       posFormatSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       posState.format = btn.dataset.value;
-      persistPositionsSettings();
+      checkPositionsSettingsDirty();
     });
   });
 
@@ -331,7 +335,7 @@ import { loadSection, saveSection } from "../../core/storage.js";
       posSchoolSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       posState.school = btn.dataset.value;
-      persistPositionsSettings();
+      checkPositionsSettingsDirty();
     });
   });
 
@@ -342,34 +346,67 @@ import { loadSection, saveSection } from "../../core/storage.js";
     const min = parseInt(posNMin.value, 10);
     const max = parseInt(posNMax.value, 10);
     const errEl = document.getElementById("pos-range-error");
-    const startBtn = document.getElementById("start-positions-session");
     if (min > max) {
       errEl.textContent = dict[state.lang]["posSetup.rangeError"];
-      startBtn.disabled = true;
-      startBtn.style.opacity = "0.5";
       return false;
     }
     errEl.textContent = "";
-    startBtn.disabled = false;
-    startBtn.style.opacity = "1";
     return true;
   }
 
-  posNMin.addEventListener("change", validatePosRange);
-  posNMax.addEventListener("change", validatePosRange);
+  function onPosRangeChange() {
+    if (!validatePosRange()) { checkPositionsSettingsDirty(); return; }
+    posState.minN = parseInt(posNMin.value, 10);
+    posState.maxN = parseInt(posNMax.value, 10);
+    checkPositionsSettingsDirty();
+  }
+  posNMin.addEventListener("change", onPosRangeChange);
+  posNMax.addEventListener("change", onPosRangeChange);
 
   export function runPositionsSession() {
     showSubview("session-positions");
     dealNewPositionsRound();
   }
 
-  document.getElementById("start-positions-session").addEventListener("click", () => {
-    if (!validatePosRange()) return;
-    posState.minN = parseInt(posNMin.value, 10);
-    posState.maxN = parseInt(posNMax.value, 10);
+  // --- Модалка настроек (шестерёнка) ---
+  let positionsSettingsSnapshot = null;
+
+  function syncPositionsSettingsUI(s) {
+    posNMin.value = s.minN;
+    posNMax.value = s.maxN;
+    posFormatSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.format));
+    posSchoolSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.school));
+    updatePosFormatAvailability();
+  }
+
+  function checkPositionsSettingsDirty() {
+    const valid = validatePosRange();
+    const changed = positionsSettingsSnapshot && JSON.stringify(getPositionsSettings()) !== JSON.stringify(positionsSettingsSnapshot);
+    document.getElementById("positions-settings-ok").disabled = !valid || !changed;
+  }
+
+  function openPositionsSettingsModal() {
+    positionsSettingsSnapshot = getPositionsSettings();
+    document.getElementById("positions-settings-modal").classList.add("show");
+    checkPositionsSettingsDirty();
+  }
+  function closePositionsSettingsModal() {
+    document.getElementById("positions-settings-modal").classList.remove("show");
+  }
+  document.getElementById("positions-settings-ok").addEventListener("click", () => {
     persistPositionsSettings();
+    closePositionsSettingsModal();
     runPositionsSession();
   });
+  function cancelPositionsSettings() {
+    applySettings(positionsSettingsSnapshot);
+    syncPositionsSettingsUI(positionsSettingsSnapshot);
+    closePositionsSettingsModal();
+  }
+  document.getElementById("positions-settings-cancel").addEventListener("click", cancelPositionsSettings);
+  document.getElementById("positions-settings-cancel-x").addEventListener("click", cancelPositionsSettings);
+
+  registerGearProvider("session-positions", openPositionsSettingsModal);
 
   document.getElementById("pos-next-deal").addEventListener("click", dealNewPositionsRound);
 
@@ -398,9 +435,5 @@ import { loadSection, saveSection } from "../../core/storage.js";
   const savedPositionsSettings = loadSection("positions");
   if (savedPositionsSettings) {
     applySettings(savedPositionsSettings);
-    if (posState.minN !== undefined) posNMin.value = posState.minN;
-    if (posState.maxN !== undefined) posNMax.value = posState.maxN;
-    posFormatSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === posState.format));
-    posSchoolSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === posState.school));
-    updatePosFormatAvailability();
+    syncPositionsSettingsUI(getPositionsSettings());
   }

@@ -10,14 +10,14 @@
 
 import { dict } from "../core/i18n.js";
 import { state } from "../core/state.js";
+import { updateHeaderRightSlot, setHeaderMainMode } from "../practice/practice-router.js";
 
   export function showTheorySubview(name) {
-    const backBtn = document.getElementById("back-btn");
     const headerTitle = document.getElementById("header-title");
     document.querySelectorAll('[data-screen="theory"] [data-theory-subview]').forEach(v => {
       v.classList.toggle("active", v.dataset.theorySubview === name);
     });
-    backBtn.classList.toggle("show", name !== "theory-hub");
+    setHeaderMainMode(name === "theory-hub");
     const t = dict[state.lang];
     if (name === "theory-hub") headerTitle.textContent = t["tab.theory"];
     if (name === "theory-terms") {
@@ -33,6 +33,7 @@ import { state } from "../core/state.js";
     if (name === "theory-combos") headerTitle.textContent = t["theory.combos.title"];
     if (name === "theory-categories") headerTitle.textContent = t["theory.categories.title"];
     if (name === "theory-notation") headerTitle.textContent = t["theory.notation.title"];
+    updateHeaderRightSlot();
   }
 
   document.querySelectorAll('[data-screen="theory"] .hub-card').forEach(card => {

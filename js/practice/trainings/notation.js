@@ -5,7 +5,7 @@
 import { state, RANKS, SUITS, RANK_VALUE } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { pickRandom, shuffle } from "../../core/deck.js";
-import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 import { cardEl } from "../../ui/card.js";
 
@@ -377,6 +377,7 @@ export function notHandCombos(code) {
   const notTokenBlock = document.getElementById("not-token-block");
   const notTokenSwitch = document.getElementById("not-token-switch");
   const notPairsSwitch = document.getElementById("not-pairs-switch");
+  const notRankpoolSwitch = document.getElementById("not-rankpool-switch");
 
   function updateNotTokenBlockVisibility() {
     notTokenBlock.style.display = notState.mode === "multi" ? "block" : "none";
@@ -391,13 +392,17 @@ export function notHandCombos(code) {
     });
   }
 
+  function getNotationSettings() {
+    return { mode: notState.mode, rankPool: notState.rankPool, pairs: notState.pairs, tokenType: notState.tokenType };
+  }
+
   wireNotSegmented(notModeSwitch, v => {
     notState.mode = v;
     updateNotTokenBlockVisibility();
-    persistNotationSettings();
+    checkNotationSettingsDirty();
   });
-  wireNotSegmented(document.getElementById("not-rankpool-switch"), v => { notState.rankPool = v; persistNotationSettings(); });
-  wireNotSegmented(notTokenSwitch, v => { notState.tokenType = v; persistNotationSettings(); });
+  wireNotSegmented(notRankpoolSwitch, v => { notState.rankPool = v; checkNotationSettingsDirty(); });
+  wireNotSegmented(notTokenSwitch, v => { notState.tokenType = v; checkNotationSettingsDirty(); });
 
   function updateNotTokenPairAvailability() {
     const pairBtn = notTokenSwitch.querySelector('button[data-value="pair"]');
@@ -415,7 +420,7 @@ export function notHandCombos(code) {
   wireNotSegmented(notPairsSwitch, v => {
     notState.pairs = v;
     updateNotTokenPairAvailability();
-    persistNotationSettings();
+    checkNotationSettingsDirty();
   });
 
   updateNotTokenBlockVisibility();
@@ -430,8 +435,45 @@ export function notHandCombos(code) {
     }
   }
 
-  document.getElementById("start-notation-session").addEventListener("click", runNotationSession);
+  // --- Модалка настроек (шестерёнка) ---
+  let notationSettingsSnapshot = null;
 
+  function syncNotationSettingsUI(s) {
+    notModeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.mode));
+    notRankpoolSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.rankPool));
+    notTokenSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.tokenType));
+    notPairsSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.pairs));
+    updateNotTokenBlockVisibility();
+    updateNotTokenPairAvailability();
+  }
+
+  function checkNotationSettingsDirty() {
+    const changed = notationSettingsSnapshot && JSON.stringify(getNotationSettings()) !== JSON.stringify(notationSettingsSnapshot);
+    document.getElementById("notation-settings-ok").disabled = !changed;
+  }
+
+  function openNotationSettingsModal() {
+    notationSettingsSnapshot = getNotationSettings();
+    document.getElementById("notation-settings-modal").classList.add("show");
+    checkNotationSettingsDirty();
+  }
+  function closeNotationSettingsModal() {
+    document.getElementById("notation-settings-modal").classList.remove("show");
+  }
+  document.getElementById("notation-settings-ok").addEventListener("click", () => {
+    persistNotationSettings();
+    closeNotationSettingsModal();
+    runNotationSession();
+  });
+  function cancelNotationSettings() {
+    applySettings(notationSettingsSnapshot);
+    syncNotationSettingsUI(notationSettingsSnapshot);
+    closeNotationSettingsModal();
+  }
+  document.getElementById("notation-settings-cancel").addEventListener("click", cancelNotationSettings);
+  document.getElementById("notation-settings-cancel-x").addEventListener("click", cancelNotationSettings);
+  registerGearProvider("session-notation-single", openNotationSettingsModal);
+  registerGearProvider("session-notation-multi", openNotationSettingsModal);
 
   // Точка входа для программного запуска (Обучариум) — см. DECISIONS.md.
   // settings: { mode, rankPool, pairs, tokenType }
@@ -450,10 +492,5 @@ export function notHandCombos(code) {
   const savedNotationSettings = loadSection("notation");
   if (savedNotationSettings) {
     applySettings(savedNotationSettings);
-    notModeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === notState.mode));
-    document.getElementById("not-rankpool-switch").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === notState.rankPool));
-    notTokenSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === notState.tokenType));
-    notPairsSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === notState.pairs));
-    updateNotTokenBlockVisibility();
-    updateNotTokenPairAvailability();
+    syncNotationSettingsUI(getNotationSettings());
   }

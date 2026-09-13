@@ -8,7 +8,7 @@ import { dict } from "../../core/i18n.js";
 import { buildDeck, shuffle } from "../../core/deck.js";
 import { classifyCategories, computeOuts, displayCategoryIndex, CATEGORY_NAMES, evaluateBest } from "../../core/hand-eval.js";
 import { cardEl } from "../../ui/card.js";
-import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 
   let currentDeal = null;
@@ -432,18 +432,9 @@ import { loadSection, saveSection } from "../../core/storage.js";
       streetSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       state.street = btn.dataset.value;
-      persistOutsSettings();
+      checkOutsSettingsDirty();
     });
   });
-
-  function updateStartButtonState() {
-    const canStart = state.wantNumber || state.wantCategory;
-    const startBtn = document.getElementById("start-session");
-    const note = document.getElementById("start-disabled-note");
-    startBtn.disabled = !canStart;
-    startBtn.style.opacity = canStart ? "1" : "0.5";
-    note.style.display = canStart ? "none" : "block";
-  }
 
   const wantNumberToggle = document.getElementById("want-number-toggle");
   const wantCategoryToggle = document.getElementById("want-category-toggle");
@@ -469,36 +460,84 @@ import { loadSection, saveSection } from "../../core/storage.js";
     });
   }
 
+  // --- Модалка настроек (шестерёнка) — снимок при открытии, Ок только если
+  // реально что-то изменилось и настройки валидны, Отмена откатывает без следа.
+  let outsSettingsSnapshot = null;
+
+  function getOutsSettings() {
+    return {
+      wantNumber: state.wantNumber,
+      wantCategory: state.wantCategory,
+      wantPercategory: state.wantPercategory,
+      street: state.street,
+      outputMode: state.outputMode
+    };
+  }
+
+  function syncOutsSettingsUI(s) {
+    wantNumberToggle.checked = s.wantNumber;
+    wantCategoryToggle.checked = s.wantCategory;
+    wantPercategoryToggle.checked = s.wantPercategory;
+    streetSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.street));
+    outputModeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.outputMode));
+    updatePercategoryAvailability();
+  }
+
+  function checkOutsSettingsDirty() {
+    const valid = state.wantNumber || state.wantCategory;
+    document.getElementById("start-disabled-note").style.display = valid ? "none" : "block";
+    const changed = outsSettingsSnapshot && JSON.stringify(getOutsSettings()) !== JSON.stringify(outsSettingsSnapshot);
+    document.getElementById("outs-settings-ok").disabled = !valid || !changed;
+  }
+
+  function openOutsSettingsModal() {
+    outsSettingsSnapshot = getOutsSettings();
+    document.getElementById("outs-settings-modal").classList.add("show");
+    checkOutsSettingsDirty();
+  }
+  function closeOutsSettingsModal() {
+    document.getElementById("outs-settings-modal").classList.remove("show");
+  }
+
+  document.getElementById("outs-settings-ok").addEventListener("click", () => {
+    persistOutsSettings();
+    closeOutsSettingsModal();
+    startSession();
+  });
+  function cancelOutsSettings() {
+    applySettings(outsSettingsSnapshot);
+    syncOutsSettingsUI(outsSettingsSnapshot);
+    closeOutsSettingsModal();
+  }
+  document.getElementById("outs-settings-cancel").addEventListener("click", cancelOutsSettings);
+  document.getElementById("outs-settings-cancel-x").addEventListener("click", cancelOutsSettings);
+
   const outputModeSwitch = document.getElementById("output-mode-switch");
   outputModeSwitch.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
       outputModeSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       state.outputMode = btn.dataset.value;
-      persistOutsSettings();
+      checkOutsSettingsDirty();
     });
   });
 
   wantNumberToggle.addEventListener("change", (e) => {
     state.wantNumber = e.target.checked;
     updatePercategoryAvailability();
-    updateStartButtonState();
-    persistOutsSettings();
+    checkOutsSettingsDirty();
   });
 
   wantCategoryToggle.addEventListener("change", (e) => {
     state.wantCategory = e.target.checked;
     updatePercategoryAvailability();
-    updateStartButtonState();
-    persistOutsSettings();
+    checkOutsSettingsDirty();
   });
 
   wantPercategoryToggle.addEventListener("change", (e) => {
     state.wantPercategory = e.target.checked;
-    persistOutsSettings();
+    checkOutsSettingsDirty();
   });
-
-  document.getElementById("start-session").addEventListener("click", startSession);
 
   /* Language */
 
@@ -538,23 +577,13 @@ import { loadSection, saveSection } from "../../core/storage.js";
     startSession();
   });
 
+  registerGearProvider("session", openOutsSettingsModal);
+
   // Восстановление сохранённых настроек при загрузке — до того, как пользователь
   // что-либо нажмёт. Если ничего не сохранено (или версия не совпала) — остаются
   // дефолтные значения из core/state.js, ничего специально обрабатывать не нужно.
   const savedOutsSettings = loadSection("outs");
   if (savedOutsSettings) {
     applySettings(savedOutsSettings);
-    // applySettings меняет только state — чекбоксы сетап-экрана надо синхронизировать отдельно,
-    // иначе визуально будет показано не то, что реально применится при старте сессии.
-    wantNumberToggle.checked = state.wantNumber;
-    wantCategoryToggle.checked = state.wantCategory;
-    wantPercategoryToggle.checked = state.wantPercategory;
-    const savedStreetBtn = streetSwitch.querySelector(`button[data-value="${state.street}"]`);
-    if (savedStreetBtn) {
-      streetSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-      savedStreetBtn.classList.add("active");
-    }
-    outputModeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === state.outputMode));
-    updatePercategoryAvailability();
-    updateStartButtonState();
+    syncOutsSettingsUI(getOutsSettings());
   }

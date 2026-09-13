@@ -6,7 +6,7 @@
 import Sortable from "../lib/sortable.js";
 import { dict } from "../core/i18n.js";
 import { state } from "../core/state.js";
-import { showSubview, onSubviewShow, onAnySubviewShow } from "./practice-router.js";
+import { showSubview, onSubviewShow, registerHeaderSlotUpdater, startTraining } from "./practice-router.js";
 import { loadSection, saveSection } from "../core/storage.js";
 
   /* ===== Хаб «Практика»: данные, рендер, режим редактирования, драг, закрепление =====
@@ -62,13 +62,9 @@ import { loadSection, saveSection } from "../core/storage.js";
   }
 
   function hubOpenModule(moduleId) {
-    if (moduleId === "outs") showSubview("setup");
-    else if (moduleId === "identify-combo") showSubview("setup-combo");
-    else if (moduleId === "calc-outs") showSubview("calc-outs-setup");
+    if (moduleId === "calc-outs") showSubview("calc-outs-setup");
     else if (moduleId === "calc-equity") showSubview("calc-equity");
-    else if (moduleId === "positions") showSubview("setup-positions");
-    else if (moduleId === "notation") showSubview("setup-notation");
-    else if (moduleId === "preflop-table") showSubview("setup-preflop");
+    else if (["outs", "identify-combo", "positions", "notation", "preflop-table"].includes(moduleId)) startTraining(moduleId);
     else showSubview("soon");
   }
 
@@ -122,7 +118,7 @@ import { loadSection, saveSection } from "../core/storage.js";
 
   // Единый источник правды для правого слота шапки: тумблер компактности и «Готово»
   // никогда не показываются одновременно и оба видны только на самом экране хаба.
-  function hubUpdateHeaderSlot() {
+  function updateHubHeaderSlot() {
     const freeScreen = document.querySelector('[data-screen="free"]');
     const hubSub = document.querySelector('[data-subview="hub"]');
     const onHub = !!freeScreen && freeScreen.classList.contains("active") &&
@@ -130,19 +126,20 @@ import { loadSection, saveSection } from "../core/storage.js";
     document.getElementById("hub-compact-toggle").classList.toggle("show", onHub && !hubState.editing);
     document.getElementById("hub-done-btn").classList.toggle("show", onHub && hubState.editing);
   }
+  registerHeaderSlotUpdater(updateHubHeaderSlot);
 
   function hubEnterEdit() {
     if (hubState.editing) return;
     hubState.editing = true;
     renderHub();
-    hubUpdateHeaderSlot();
+    updateHubHeaderSlot();
   }
 
   export function hubExitEdit() {
     if (!hubState.editing) return;
     hubState.editing = false;
     renderHub();
-    hubUpdateHeaderSlot();
+    updateHubHeaderSlot();
   }
 
   document.getElementById("hub-done-btn").addEventListener("click", hubExitEdit);
@@ -269,10 +266,9 @@ import { loadSection, saveSection } from "../core/storage.js";
   }
 
   renderHub();
-  hubUpdateHeaderSlot();
+  updateHubHeaderSlot();
 
   /* Navigation: subviews inside "theory" */
 
 
   onSubviewShow("hub", renderHub);
-  onAnySubviewShow(hubUpdateHeaderSlot);

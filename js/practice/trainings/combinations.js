@@ -7,7 +7,7 @@ import { dict } from "../../core/i18n.js";
 import { evaluateBest, getCoreCards, displayCategoryIndex, CATEGORY_NAMES, cardId } from "../../core/hand-eval.js";
 import { cardEl } from "../../ui/card.js";
 import { pickTargetCategory, generateCardsForCategory } from "./outs.js";
-import { showSubview, registerTrainingEntry } from "../practice-router.js";
+import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 
   let comboState = { sublevel: "5", dealNum: 1, correctCount: 0, answeredCount: 0 };
@@ -24,9 +24,36 @@ import { loadSection, saveSection } from "../../core/storage.js";
       comboSublevelSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       comboState.sublevel = btn.dataset.value;
-      persistCombinationsSettings();
+      checkComboSettingsDirty();
     });
   });
+
+  let comboSettingsSnapshot = null;
+  function checkComboSettingsDirty() {
+    const changed = comboSettingsSnapshot && comboState.sublevel !== comboSettingsSnapshot.sublevel;
+    document.getElementById("combo-settings-ok").disabled = !changed;
+  }
+  function openComboSettingsModal() {
+    comboSettingsSnapshot = { sublevel: comboState.sublevel };
+    document.getElementById("combo-settings-modal").classList.add("show");
+    checkComboSettingsDirty();
+  }
+  function closeComboSettingsModal() {
+    document.getElementById("combo-settings-modal").classList.remove("show");
+  }
+  document.getElementById("combo-settings-ok").addEventListener("click", () => {
+    persistCombinationsSettings();
+    closeComboSettingsModal();
+    startComboSession();
+  });
+  function cancelComboSettings() {
+    applySettings(comboSettingsSnapshot);
+    comboSublevelSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === comboState.sublevel));
+    closeComboSettingsModal();
+  }
+  document.getElementById("combo-settings-cancel").addEventListener("click", cancelComboSettings);
+  document.getElementById("combo-settings-cancel-x").addEventListener("click", cancelComboSettings);
+  registerGearProvider("session-combo", openComboSettingsModal);
 
   function sublevelCardCount(sublevel) {
     if (sublevel === "5") return 5;
@@ -170,7 +197,6 @@ import { loadSection, saveSection } from "../../core/storage.js";
     renderComboOptions();
   }
 
-  document.getElementById("start-combo-session").addEventListener("click", startComboSession);
   document.getElementById("next-combo-deal").addEventListener("click", nextComboDeal);
 
   document.getElementById("show-probs-modal").addEventListener("click", () => {

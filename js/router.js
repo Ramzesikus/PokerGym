@@ -4,7 +4,7 @@
 
 import { state } from "./core/state.js";
 import { dict } from "./core/i18n.js";
-import { showSubview } from "./practice/practice-router.js";
+import { showSubview, updateHeaderRightSlot, setHeaderMainMode } from "./practice/practice-router.js";
 import { showTheorySubview } from "./theory/theory.js";
 import { stopTimer } from "./practice/trainings/outs.js";
 import { hubExitEdit } from "./practice/practice.js";
@@ -22,12 +22,12 @@ import { hubExitEdit } from "./practice/practice.js";
       navButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       screens.forEach(s => s.classList.toggle("active", s.dataset.screen === tab));
-      if (typeof hubUpdateHeaderSlot === "function") hubUpdateHeaderSlot();
+      updateHeaderRightSlot();
       headerTitle.setAttribute("data-i18n", btn.dataset.i18nTitle);
       headerTitle.textContent = dict[state.lang][btn.dataset.i18nTitle];
       if (tab === "free") showSubview("hub");
       else if (tab === "theory") showTheorySubview("theory-hub");
-      else backBtn.classList.remove("show");
+      else setHeaderMainMode(true);
     });
   });
 
@@ -44,11 +44,9 @@ import { hubExitEdit } from "./practice/practice.js";
 
     const activeSub = document.querySelector('[data-screen="free"] .subview.active');
     const name = activeSub ? activeSub.dataset.subview : "hub";
-    if (name === "session") showSubview("setup");
-    else if (name === "session-combo") showSubview("setup-combo");
-    else if (name === "calc-outs-result") showSubview("calc-outs-setup");
-    else if (name === "session-positions") showSubview("setup-positions");
-    else if (name === "session-notation-single" || name === "session-notation-multi") showSubview("setup-notation");
-    else if (name === "session-notation-range") showSubview("setup-preflop");
+    // Сетап-экраны пяти тренировок больше не часть обычного пути (их место
+    // заняла шестерёнка+модалка) — «назад» из сессии теперь всегда ведёт в хаб,
+    // не на сетап. Калькулятор аутов — исключение, у него сетап остаётся.
+    if (name === "calc-outs-result") showSubview("calc-outs-setup");
     else showSubview("hub");
   });

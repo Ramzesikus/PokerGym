@@ -23,16 +23,12 @@
 
   header {
     padding: 16px 20px 12px;
+    height: 30px;
+    box-sizing: content-box;
     border-bottom: 1px solid var(--divider, #2a2e33);
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-
-  header h1 {
-    margin: 0;
-    font-size: 17px;
-    font-weight: 600;
   }
 
   header .back-btn {
@@ -46,9 +42,63 @@
 
   header .back-btn.show { display: flex; }
 
+  header h1 {
+    display: none;
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  header h1.show { display: block; }
+
+  .header-info-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 2px;
+  }
+  .header-info-btn.show { display: flex; }
+
+  .header-wordmark {
+    display: none;
+    align-items: baseline;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .header-wordmark.show { display: flex; }
+  .header-wordmark .wordmark-poker { color: var(--table-fg, #e8e8e8); }
+  .header-wordmark .wordmark-gym { color: #5fd1a3; }
+
+  .header-right-cluster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .header-gear-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 2px;
+  }
+  .header-gear-btn.show { display: flex; }
+
+  .header-login-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    line-height: 0;
+  }
+
   .header-done-btn {
     display: none;
-    margin-left: auto;
     background: none;
     border: none;
     color: #4fa3ff;
@@ -121,7 +171,6 @@
 
   .hub-compact-toggle {
     display: none;
-    margin-left: auto;
     background: none;
     border: 1px solid var(--divider, #2a2e33);
     border-radius: 8px;
@@ -959,6 +1008,16 @@
     font-weight: 500;
   }
 
+  .intro-modal-body .intro-divider {
+    margin: 18px 0 0;
+    border: none;
+    border-top: 1px solid var(--divider, #2a2e33);
+  }
+
+  .intro-modal-body a {
+    color: #5fd1a3;
+  }
+
   .combo-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1082,6 +1141,17 @@
     width: 100%;
     max-height: 80vh;
     overflow-y: auto;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .modal-footer .secondary-btn,
+  .modal-footer .primary-btn {
+    flex: 1;
+    margin: 0;
   }
 
   .modal-header {

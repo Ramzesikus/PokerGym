@@ -12,8 +12,56 @@ import { dict } from "../core/i18n.js";
 import { state } from "../core/state.js";
 
 const subviewHooks = {};
-let anySubviewCallback = null;
 const trainingEntryPoints = {};
+const headerSlotUpdaters = [];
+
+// Реестр правого слота шапки — живёт здесь, не в router.js и не в practice.js,
+// чтобы не создавать циклический импорт (router.js уже импортирует practice.js,
+// а practice.js должен уметь регистрировать сюда свой обработчик). Любое место,
+// что-то показывающее в правом слоте (компакт-режим хаба, шестерёнка тренировки),
+// регистрирует здесь свою функцию проверки; router.js вызывает их все при каждой
+// смене экрана/вкладки, сам не зная, что конкретно у кого показывать.
+export function registerHeaderSlotUpdater(fn) {
+  headerSlotUpdaters.push(fn);
+}
+export function updateHeaderRightSlot() {
+  headerSlotUpdaters.forEach(fn => fn());
+  updateGearSlot();
+}
+
+// Шестерёнка — общий элемент на пятерых, а не по одной на тренировку. Чтобы
+// пять независимых колбэков не конкурировали за один DOM-элемент (кто последний
+// вызвался — та и победила, реальный риск гонки), решение о показе/скрытии и о
+// том, чей обработчик клика сейчас актуален, принимается централизованно здесь.
+const gearProviders = {}; // subviewName -> функция открытия модалки настроек
+export function registerGearProvider(subviewName, openModalFn) {
+  gearProviders[subviewName] = openModalFn;
+}
+let currentGearHandler = null;
+function updateGearSlot() {
+  const freeScreenActive = document.querySelector('[data-screen="free"]')?.classList.contains("active");
+  const activeSub = freeScreenActive ? document.querySelector('[data-screen="free"] .subview.active') : null;
+  const name = activeSub ? activeSub.dataset.subview : null;
+  const gearBtn = document.getElementById("header-gear-btn");
+  const provider = name ? gearProviders[name] : null;
+  gearBtn.classList.toggle("show", !!provider);
+  if (currentGearHandler) gearBtn.removeEventListener("click", currentGearHandler);
+  currentGearHandler = provider || null;
+  if (currentGearHandler) gearBtn.addEventListener("click", currentGearHandler);
+}
+
+// Централизованное переключение левой/центральной части шапки — раньше каждый
+// из трёх роутеров (router.js, этот файл, theory.js) по отдельности дёргал
+// backBtn.classList, что и привело к пропущенному месту при переключении вкладок.
+// Теперь одна функция управляет сразу четырьмя элементами как двумя парами:
+// «назад» + «i» (взаимоисключающие слева), заголовок экрана + логотип
+// (взаимоисключающие по центру).
+export function setHeaderMainMode(isMainScreen) {
+  document.getElementById("back-btn").classList.toggle("show", !isMainScreen);
+  document.getElementById("header-info-btn").classList.toggle("show", isMainScreen);
+  document.getElementById("header-title").classList.toggle("show", !isMainScreen);
+  document.getElementById("header-wordmark").classList.toggle("show", isMainScreen);
+}
 
 // Заранее сброшенный флаг: последний запуск тренировки шёл с готовыми настройками
 // извне (Обучариум), а не по клику пользователя из хаба. Пригодится, когда будет
@@ -45,19 +93,16 @@ export function onSubviewShow(name, callback) {
   subviewHooks[name] = callback;
 }
 
-// В оригинале hubUpdateHeaderSlot вызывался при КАЖДОЙ смене под-экрана,
-// не только при показе хаба — сохраняю то же поведение отдельным хуком.
-export function onAnySubviewShow(callback) {
-  anySubviewCallback = callback;
-}
+// Общий правый слот шапки (компакт-режим хаба, шестерёнка тренировки и т.п.)
+// теперь обновляется через registerHeaderSlotUpdater/updateHeaderRightSlot выше —
+// заменяет прежний onAnySubviewShow (был нужен только для одного подписчика).
 
 export function showSubview(name) {
   document.querySelectorAll('[data-screen="free"] .subview').forEach(v => {
     v.classList.toggle("active", v.dataset.subview === name);
   });
-  const backBtn = document.getElementById("back-btn");
   const headerTitle = document.getElementById("header-title");
-  backBtn.classList.toggle("show", name !== "hub");
+  setHeaderMainMode(name === "hub");
   const t = dict[state.lang];
   if (name === "hub") headerTitle.textContent = t["tab.free"];
   if (name === "soon") headerTitle.textContent = t["stub.soon"];
@@ -70,5 +115,5 @@ export function showSubview(name) {
   if (name === "setup-notation" || name === "session-notation-single" || name === "session-notation-multi") headerTitle.textContent = t["module.notation.title"];
   if (name === "setup-preflop" || name === "session-notation-range") headerTitle.textContent = t["module.preflopTable.title"];
   if (subviewHooks[name]) subviewHooks[name]();
-  if (anySubviewCallback) anySubviewCallback();
+  updateHeaderRightSlot();
 }
