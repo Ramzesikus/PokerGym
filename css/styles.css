@@ -1269,7 +1269,6 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 14px;
-    min-height: 76px;
     align-content: flex-start;
     transition: opacity .15s;
   }

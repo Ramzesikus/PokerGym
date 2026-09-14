@@ -608,7 +608,11 @@ import { loadSection, saveSection } from "../../core/storage.js";
     if (settings.street !== undefined) state.street = settings.street;
     if (settings.outputMode !== undefined) state.outputMode = settings.outputMode;
     if (settings.hideCards !== undefined) state.hideCards = settings.hideCards;
-    if (settings.showTime !== undefined) state.showTime = settings.showTime;
+    // "none" — устаревшее значение из убранной опции «Без ограничения» (см.
+    // чат): могло остаться в localStorage у тех, кто успел его выбрать до
+    // удаления. Валидного чипса под него больше нет — просто игнорируем,
+    // остаётся дефолт ("3") вместо зависания без активного чипса.
+    if (settings.showTime !== undefined && settings.showTime !== "none") state.showTime = settings.showTime;
   }
 
   registerTrainingEntry("outs", (settings) => {

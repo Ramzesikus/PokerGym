@@ -375,7 +375,8 @@ import { loadSection, saveSection } from "../../core/storage.js";
   export function applySettings(settings) {
     if (settings.sublevel !== undefined) comboState.sublevel = settings.sublevel;
     if (settings.hideCards !== undefined) comboState.hideCards = settings.hideCards;
-    if (settings.showTime !== undefined) comboState.showTime = settings.showTime;
+    // "none" — устаревшее значение из убранной опции «Без ограничения», см. outs.js.
+    if (settings.showTime !== undefined && settings.showTime !== "none") comboState.showTime = settings.showTime;
   }
 
   registerTrainingEntry("identify-combo", (settings) => {
