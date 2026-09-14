@@ -228,7 +228,7 @@ import { loadSection, saveSection } from "../../core/storage.js";
 
     renderComboHand(true);
 
-    if (!comboState.hideCards || comboState.showTime === "none") {
+    if (!comboState.hideCards) {
       track.style.display = "none";
       return;
     }

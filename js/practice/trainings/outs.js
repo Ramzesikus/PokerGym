@@ -97,7 +97,7 @@ import { loadSection, saveSection } from "../../core/storage.js";
     const track = document.getElementById("timer-track");
     const fill = document.getElementById("timer-fill");
 
-    if (!state.hideCards || state.showTime === "none") {
+    if (!state.hideCards) {
       track.style.display = "none";
       return;
     }
