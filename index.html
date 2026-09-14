@@ -217,33 +217,20 @@
           </div>
 
           <div class="setting-block">
-            <div class="setting-label" data-i18n="posSetup.range">Число игроков</div>
-            <div class="pos-select-row">
-              <div class="pos-select-col">
-                <span class="pos-select-label" data-i18n="posSetup.from">От</span>
-                <select class="pos-select" id="pos-n-min">
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6" selected>6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                </select>
-              </div>
-              <div class="pos-select-col">
-                <span class="pos-select-label" data-i18n="posSetup.to">До</span>
-                <select class="pos-select" id="pos-n-max">
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6" selected>6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                </select>
+            <div class="pos-range-row">
+              <span class="setting-label" data-i18n="posSetup.range">Число игроков</span>
+              <div class="pos-stepper-group">
+                <div class="pos-stepper" aria-label="От">
+                  <button type="button" class="pos-stepper-btn" id="pos-n-min-minus" aria-label="Меньше">−</button>
+                  <span class="pos-stepper-value" id="pos-n-min-value">6</span>
+                  <button type="button" class="pos-stepper-btn" id="pos-n-min-plus" aria-label="Больше">+</button>
+                </div>
+                <span class="pos-stepper-dash">—</span>
+                <div class="pos-stepper" aria-label="До">
+                  <button type="button" class="pos-stepper-btn" id="pos-n-max-minus" aria-label="Меньше">−</button>
+                  <span class="pos-stepper-value" id="pos-n-max-value">6</span>
+                  <button type="button" class="pos-stepper-btn" id="pos-n-max-plus" aria-label="Больше">+</button>
+                </div>
               </div>
             </div>
             <div class="error-text" id="pos-range-error"></div>
@@ -653,6 +640,8 @@
             </button>
           </div>
           <table class="theory-table" id="probs-modal-table"></table>
+          <div class="modal-note" data-i18n="session.probsModalNote1">«Тренировочная» — вероятность, с которой тренажёр выбирает комбинацию как цель для раздачи; одинакова для всех подуровней.</div>
+          <div class="modal-note" data-i18n="session.probsModalNote2">«5 карт» — подуровни «5 карт» и «Рука+флоп»; «6 карт» — «Рука+тёрн»; «7 карт» — «Рука+ривер».</div>
         </div>
       </div>
 

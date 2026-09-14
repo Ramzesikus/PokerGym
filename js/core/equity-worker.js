@@ -2,17 +2,15 @@
 // Модульный Web Worker (создаётся с { type: "module" }). Раньше код этого файла
 // был встроен строкой EQ_WORKER_SOURCE и дублировал evaluate5/evaluateBest/
 // displayCategoryIndex/comboIndices/combinations/cardId из hand-eval.js целиком —
-// здесь дублирования нет, всё импортируется.
+// здесь дублирования нет, всё импортируется (включая RANKS/SUITS — раньше были
+// продублированы локальными копиями вопреки этому же комментарию, см. чат).
 //
 // Путь ниже — относительный от самого этого файла (import.meta.url внутри воркера
 // указывает на URL воркера, не на URL того, кто его создал) — работает независимо
 // от того, куда задеплоено приложение (корень домена или подпапка).
-import { RANK_VALUE } from "./state.js";
 import { evaluate5, evaluateBest, compareResult, displayCategoryIndex, cardId } from "./hand-eval.js";
 import { partialShuffle } from "./deck.js";
-
-const RANKS = ["2","3","4","5","6","7","8","9","T","J","Q","K","A"];
-const SUITS = ["hearts","diamonds","clubs","spades"];
+import { RANKS, SUITS } from "./state.js";
 
 self.onmessage = function (e) {
   const { board, playersHands, iterations } = e.data;

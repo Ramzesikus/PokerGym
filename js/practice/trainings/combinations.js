@@ -1,12 +1,13 @@
 // js/practice/trainings/combinations.js
-// Логика и UI тренировки «Комбинации». Переиспользует генератор раздач
-// тренировки «Ауты» (pickTargetCategory/generateCardsForCategory).
+// Логика и UI тренировки «Комбинации». Генератор раздачи по целевой категории
+// (pickTargetCategory/generateCardsForCategory) — в core/combo-generation.js,
+// не здесь и не в «Аутах» (см. DECISIONS.md, историю переноса в чате).
 
 import { state } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { evaluateBest, getCoreCards, displayCategoryIndex, CATEGORY_NAMES, cardId } from "../../core/hand-eval.js";
 import { cardEl } from "../../ui/card.js";
-import { pickTargetCategory, generateCardsForCategory, TRAINING_WEIGHTS, REAL_PROBS } from "./outs.js";
+import { pickTargetCategory, generateCardsForCategory, TRAINING_WEIGHTS, REAL_PROBS, REAL_PROBS_5, REAL_PROBS_6 } from "../../core/combo-generation.js";
 import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 
@@ -180,6 +181,17 @@ import { loadSection, saveSection } from "../../core/storage.js";
       const hand = cards.slice(0, 2);
       const board = cards.slice(2);
 
+      const boardLabel = document.createElement("div");
+      boardLabel.className = "card-row-label";
+      boardLabel.textContent = dict[state.lang]["session.board"];
+      const boardRow = document.createElement("div");
+      boardRow.className = "card-row";
+      board.forEach(c => {
+        const el = cardEl(c, true, state.faceStyle, state.cardBack);
+        comboCardElements[cardId(c)] = el;
+        boardRow.appendChild(el);
+      });
+
       const handLabel = document.createElement("div");
       handLabel.className = "card-row-label";
       handLabel.textContent = dict[state.lang]["session.hand"];
@@ -192,21 +204,10 @@ import { loadSection, saveSection } from "../../core/storage.js";
       handRow.addEventListener("pointerleave", comboPeekHandEnd);
       handRow.addEventListener("pointercancel", comboPeekHandEnd);
 
-      const boardLabel = document.createElement("div");
-      boardLabel.className = "card-row-label";
-      boardLabel.textContent = dict[state.lang]["session.board"];
-      const boardRow = document.createElement("div");
-      boardRow.className = "card-row";
-      board.forEach(c => {
-        const el = cardEl(c, true, state.faceStyle, state.cardBack);
-        comboCardElements[cardId(c)] = el;
-        boardRow.appendChild(el);
-      });
-
-      area.appendChild(handLabel);
-      area.appendChild(handRow);
       area.appendChild(boardLabel);
       area.appendChild(boardRow);
+      area.appendChild(handLabel);
+      area.appendChild(handRow);
     }
   }
 
@@ -339,16 +340,30 @@ import { loadSection, saveSection } from "../../core/storage.js";
 
   document.getElementById("next-combo-deal").addEventListener("click", nextComboDeal);
 
+  // Минимум 2 «живые» (не нулевые после ведущих нулей) цифры после запятой —
+  // см. чат: обычные 2 знака достаточны для больших процентов, редкие категории
+  // получают столько знаков, сколько нужно (0.00015% для рояля на 5 картах и т.п.).
+  function fmtProb(pct) {
+    for (let dec = 2; dec <= 6; dec++) {
+      const s = pct.toFixed(dec);
+      const frac = s.split(".")[1];
+      const firstNonZero = [...frac].findIndex(ch => ch !== "0");
+      if (firstNonZero === -1) continue;
+      if (frac.length - firstNonZero >= 2) return s;
+    }
+    return pct.toFixed(6);
+  }
+
   document.getElementById("show-probs-modal").addEventListener("click", () => {
     const t = dict[state.lang];
     const table = document.getElementById("probs-modal-table");
     table.innerHTML = "";
     const headerRow = document.createElement("tr");
-    headerRow.innerHTML = "<th>" + t["theory.combos.colName"] + "</th><th>" + t["session.realProbCol"] + "</th><th>" + t["session.trainingProbCol"] + "</th>";
+    headerRow.innerHTML = "<th>" + t["theory.combos.colName"] + "</th><th>" + t["session.realProb5Col"] + "</th><th>" + t["session.realProb6Col"] + "</th><th>" + t["session.realProb7Col"] + "</th><th>" + t["session.trainingProbCol"] + "</th>";
     table.appendChild(headerRow);
     CATEGORY_NAMES[state.lang].forEach((name, idx) => {
       const row = document.createElement("tr");
-      row.innerHTML = "<td>" + name + "</td><td>" + REAL_PROBS[idx].toFixed(2) + "%</td><td>" + TRAINING_WEIGHTS[idx].toFixed(2) + "%</td>";
+      row.innerHTML = "<td>" + name + "</td><td>" + fmtProb(REAL_PROBS_5[idx]) + "%</td><td>" + fmtProb(REAL_PROBS_6[idx]) + "%</td><td>" + fmtProb(REAL_PROBS[idx]) + "%</td><td>" + fmtProb(TRAINING_WEIGHTS[idx]) + "%</td>";
       table.appendChild(row);
     });
     document.getElementById("probs-modal").classList.add("show");

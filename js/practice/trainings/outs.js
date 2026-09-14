@@ -3,60 +3,16 @@
 // -logic.js/-ui.js отложено — приоритет сейчас: рабочее приложение целиком,
 // см. ARCHITECTURE.md).
 
-import { state, RANK_VALUE, RANKS, SUITS, DRAW_TYPES, OTHER_OUT_TYPES } from "../../core/state.js";
+import { state, DRAW_TYPES, OTHER_OUT_TYPES } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { buildDeck, shuffle } from "../../core/deck.js";
-import { classifyCategories, computeOuts, displayCategoryIndex, CATEGORY_NAMES, evaluateBest, cardId } from "../../core/hand-eval.js";
+import { classifyCategories, displayCategoryIndex, CATEGORY_NAMES, evaluateBest, cardId } from "../../core/hand-eval.js";
 import { cardEl, suitColor, displayRank } from "../../ui/card.js";
 import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 
   let currentDeal = null;
   let timerHandle = null;
-
-  export const TRAINING_WEIGHTS = [15.23, 19.18, 16.41, 11.05, 10.93, 9.84, 9.47, 4.79, 2.20, 0.90];
-  export const REAL_PROBS = [17.41, 43.82, 23.50, 4.83, 4.62, 3.03, 2.60, 0.17, 0.028, 0.003];
-
-  export function pickTargetCategory() {
-    const total = TRAINING_WEIGHTS.reduce((a, b) => a + b, 0);
-    let r = Math.random() * total;
-    for (let i = 0; i < TRAINING_WEIGHTS.length; i++) {
-      r -= TRAINING_WEIGHTS[i];
-      if (r <= 0) return i;
-    }
-    return TRAINING_WEIGHTS.length - 1;
-  }
-
-  // Прямое построение стрит-флеша: равномерный случайный выбор среди возможных вариантов —
-  // честная случайность внутри узкого пространства, а не заранее заготовленный набор.
-  // wantRoyal явно фиксирует старший ранг T-A, иначе выбор идёт среди остальных 9 стартов
-  // (стрит-флеш категории 8 теперь генерируется гарантированно НЕ роялом).
-  // Нужно только для 5-карточного режима, где обычный перебор практически никогда
-  // не находит стрит-флеш случайно.
-  function constructStraightFlush(wantRoyal) {
-    const suit = SUITS[Math.floor(Math.random() * 4)];
-    const startIdx = wantRoyal ? 9 : Math.floor(Math.random() * 9);
-    let ranks;
-    if (startIdx === 0) {
-      ranks = ["A", "2", "3", "4", "5"];
-    } else {
-      ranks = RANKS.slice(startIdx - 1, startIdx + 4);
-    }
-    return ranks.map(r => ({ rank: r, suit }));
-  }
-
-  export function generateCardsForCategory(targetCategory, cardCount) {
-    if (cardCount === 5 && (targetCategory === 8 || targetCategory === 9)) {
-      return constructStraightFlush(targetCategory === 9);
-    }
-    for (let attempts = 0; attempts < 300000; attempts++) {
-      const deck = shuffle(buildDeck());
-      const cards = deck.slice(0, cardCount);
-      const result = evaluateBest(cards).best;
-      if (displayCategoryIndex(result) === targetCategory) return cards;
-    }
-    return null;
-  }
 
   function dealNewHand() {
     const deck = shuffle(buildDeck());

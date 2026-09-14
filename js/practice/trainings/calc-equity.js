@@ -1,10 +1,10 @@
 // js/practice/trainings/calc-equity.js
 // Калькулятор эквити — интерфейс. Сам расчёт (Монте-Карло) — в core/equity-worker.js.
 
-import { state, RANKS, SUITS } from "../../core/state.js";
+import { state } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { cardId, CATEGORY_NAMES } from "../../core/hand-eval.js";
-import { openCardPicker, renderSeqCardRow } from "../../ui/card-picker.js";
+import { renderSeqCardRow } from "../../ui/card-picker.js";
 import { onSubviewShow } from "../practice-router.js";
 
   const eqState = {

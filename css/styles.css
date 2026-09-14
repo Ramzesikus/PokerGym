@@ -1108,6 +1108,14 @@
     line-height: 1.5;
   }
 
+  .modal-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted, #8a8f96);
+    line-height: 1.5;
+  }
+  .modal-note + .modal-note { margin-top: 6px; }
+
   .disclaimer-link {
     display: block;
     background: none;
@@ -1498,6 +1506,18 @@
     text-align: right;
   }
 
+  /* Модалка вероятностей «Комбинаций» — 5 колонок вместо 3 (было), название
+     комбинации может переноситься на 2 строки в узкой модалке (согласовано в
+     чате), но высота строк-данных должна быть одинаковой вне зависимости от
+     переноса — фиксированная min-height на td, не на всю таблицу. */
+  #probs-modal-table {
+    table-layout: fixed;
+    font-size: 12px;
+  }
+  #probs-modal-table th:first-child, #probs-modal-table td:first-child { width: 26%; text-align: left; }
+  #probs-modal-table th:not(:first-child), #probs-modal-table td:not(:first-child) { width: 18.5%; text-align: right; }
+  #probs-modal-table tr:not(:first-child) td { height: 34px; }
+
   .combos-table {
     font-size: 12px;
   }
@@ -1534,10 +1554,38 @@
     font-size: 14px;
   }
 
-  .pos-select-row { display: flex; align-items: center; gap: 10px; }
-  .pos-select-col { display: flex; flex-direction: column; gap: 6px; flex: 1; }
-  .pos-select-label { font-size: 12px; color: var(--muted, #8a8f96); }
-  .pos-select-dash { color: var(--muted, #8a8f96); margin-top: 18px; }
+  .pos-range-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+  .pos-stepper-group { display: flex; align-items: center; gap: 8px; }
+
+  .pos-stepper {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--divider, #2a2e33);
+    border-radius: var(--radius, 8px);
+    overflow: hidden;
+  }
+
+  .pos-stepper-btn {
+    background: var(--well, #1f2327);
+    color: inherit;
+    border: none;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1;
+    padding: 7px 11px;
+    cursor: pointer;
+  }
+  .pos-stepper-btn:disabled { opacity: 0.35; pointer-events: none; }
+
+  .pos-stepper-value {
+    width: 22px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .pos-stepper-dash { color: var(--muted, #8a8f96); font-size: 13px; }
 
   .pos-table-wrap {
     position: relative;
@@ -1600,12 +1648,6 @@
     padding: 2px;
     box-sizing: border-box;
     transition: border-color .2s, box-shadow .2s, background .2s, outline-color .15s;
-  }
-
-  .pos-seat-num {
-    font-size: 10px;
-    font-weight: 400;
-    color: var(--muted, #8a8f96);
   }
 
   .pos-seat-highlight {

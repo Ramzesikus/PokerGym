@@ -3,7 +3,7 @@
 // перемешана с кодом «Нотации» в одном месте монолита (функции с префиксом
 // not..., но относятся к отдельному модулю preflopTable) — см. ARCHITECTURE.md.
 
-import { state, RANKS } from "../../core/state.js";
+import { state } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { pickRandom, shuffle } from "../../core/deck.js";
 import { notHandCombos, wireNotSegmented, notGenRangeToken, notGenCompositeToken, notCellInfo } from "./notation.js";

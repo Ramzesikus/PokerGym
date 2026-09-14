@@ -1,7 +1,7 @@
 // js/practice/trainings/positions.js
 // Логика и UI тренировки «Позиции за столом».
 
-import { state, RANKS, SUITS } from "../../core/state.js";
+import { state } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { randomInt, shuffle } from "../../core/deck.js";
 import { posLabel, posTailSeats } from "../../core/positions.js";
@@ -118,7 +118,6 @@ import { loadSection, saveSection } from "../../core/storage.js";
       seatEl.id = "pos-seat-" + i;
       seatEl.style.left = x + "%";
       seatEl.style.top = y + "%";
-      seatEl.innerHTML = '<span class="pos-seat-num">' + (i + 1) + "</span>";
       wrap.appendChild(seatEl);
 
       if (i === posState.btnSeatIndex) {
@@ -313,22 +312,6 @@ import { loadSection, saveSection } from "../../core/storage.js";
     });
   });
 
-  // Различие «Кратко/Полно» осмысленно в основном для английского (UTG vs Under The Gun
-  // реально по-разному звучат в живой речи); для русского это разграничение неактуально —
-  // переключатель блокируется, формат фиксируется на «Кратко».
-  export function updatePosFormatAvailability() {
-    const disabled = state.lang === "ru";
-    posFormatSwitch.disabled = disabled;
-    posFormatSwitch.style.opacity = disabled ? "0.45" : "1";
-    posFormatSwitch.style.pointerEvents = disabled ? "none" : "auto";
-    if (disabled) {
-      posFormatSwitch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-      posFormatSwitch.querySelector('button[data-value="short"]').classList.add("active");
-      posState.format = "short";
-    }
-  }
-  updatePosFormatAvailability();
-
   const posSchoolSwitch = document.getElementById("pos-school-switch");
   posSchoolSwitch.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -339,14 +322,30 @@ import { loadSection, saveSection } from "../../core/storage.js";
     });
   });
 
-  const posNMin = document.getElementById("pos-n-min");
-  const posNMax = document.getElementById("pos-n-max");
+  const posNMinValue = document.getElementById("pos-n-min-value");
+  const posNMaxValue = document.getElementById("pos-n-max-value");
+  const posNMinMinus = document.getElementById("pos-n-min-minus");
+  const posNMinPlus = document.getElementById("pos-n-min-plus");
+  const posNMaxMinus = document.getElementById("pos-n-max-minus");
+  const posNMaxPlus = document.getElementById("pos-n-max-plus");
+  const POS_N_LOW = 2, POS_N_HIGH = 9;
+
+  // Степперы «От»/«До» — независимые, без блокировки друг относительно друга
+  // (см. чат): единственные жёсткие границы — абсолютные 2 и 9, не значение
+  // соседнего поля. Иначе, поправляя один край, можно было бы временно упереться
+  // в другой и застрять, пока не откатишь его обратно.
+  function syncPosRangeUI() {
+    posNMinValue.textContent = posState.minN;
+    posNMaxValue.textContent = posState.maxN;
+    posNMinMinus.disabled = posState.minN <= POS_N_LOW;
+    posNMinPlus.disabled = posState.minN >= POS_N_HIGH;
+    posNMaxMinus.disabled = posState.maxN <= POS_N_LOW;
+    posNMaxPlus.disabled = posState.maxN >= POS_N_HIGH;
+  }
 
   function validatePosRange() {
-    const min = parseInt(posNMin.value, 10);
-    const max = parseInt(posNMax.value, 10);
     const errEl = document.getElementById("pos-range-error");
-    if (min > max) {
+    if (posState.minN > posState.maxN) {
       errEl.textContent = dict[state.lang]["posSetup.rangeError"];
       return false;
     }
@@ -354,14 +353,17 @@ import { loadSection, saveSection } from "../../core/storage.js";
     return true;
   }
 
-  function onPosRangeChange() {
-    if (!validatePosRange()) { checkPositionsSettingsDirty(); return; }
-    posState.minN = parseInt(posNMin.value, 10);
-    posState.maxN = parseInt(posNMax.value, 10);
+  function stepPosN(field, delta) {
+    const next = posState[field] + delta;
+    if (next < POS_N_LOW || next > POS_N_HIGH) return;
+    posState[field] = next;
+    syncPosRangeUI();
     checkPositionsSettingsDirty();
   }
-  posNMin.addEventListener("change", onPosRangeChange);
-  posNMax.addEventListener("change", onPosRangeChange);
+  posNMinMinus.addEventListener("click", () => stepPosN("minN", -1));
+  posNMinPlus.addEventListener("click", () => stepPosN("minN", 1));
+  posNMaxMinus.addEventListener("click", () => stepPosN("maxN", -1));
+  posNMaxPlus.addEventListener("click", () => stepPosN("maxN", 1));
 
   export function runPositionsSession() {
     showSubview("session-positions");
@@ -372,11 +374,14 @@ import { loadSection, saveSection } from "../../core/storage.js";
   let positionsSettingsSnapshot = null;
 
   function syncPositionsSettingsUI(s) {
-    posNMin.value = s.minN;
-    posNMax.value = s.maxN;
+    posNMinValue.textContent = s.minN;
+    posNMaxValue.textContent = s.maxN;
+    posNMinMinus.disabled = s.minN <= POS_N_LOW;
+    posNMinPlus.disabled = s.minN >= POS_N_HIGH;
+    posNMaxMinus.disabled = s.maxN <= POS_N_LOW;
+    posNMaxPlus.disabled = s.maxN >= POS_N_HIGH;
     posFormatSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.format));
     posSchoolSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.school));
-    updatePosFormatAvailability();
   }
 
   function checkPositionsSettingsDirty() {
@@ -414,7 +419,6 @@ import { loadSection, saveSection } from "../../core/storage.js";
 
 
   export function refreshPositionsLanguage() {
-    updatePosFormatAvailability();
     if (posState.n) { renderPositionsOptions(); updatePositionsProgress(); }
   }
 
