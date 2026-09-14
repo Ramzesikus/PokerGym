@@ -141,6 +141,24 @@
             </div>
           </div>
 
+          <div class="setting-block">
+            <div class="row">
+              <span class="row-label" data-i18n="settings.hideCards">Скрывать карты после показа</span>
+              <label class="switch">
+                <input type="checkbox" id="outs-hide-cards-toggle">
+                <span class="switch-track"></span>
+              </label>
+            </div>
+            <div class="setting-label" style="margin-top:18px;" data-i18n="settings.showTime">Время показа</div>
+            <div class="time-options disabled" id="outs-time-options">
+              <button class="time-chip" data-value="none" data-i18n="settings.timeNone">Без ограничения</button>
+              <button class="time-chip" data-value="0.5" data-i18n="settings.time0_5">0.5 сек</button>
+              <button class="time-chip" data-value="1" data-i18n="settings.time1">1 сек</button>
+              <button class="time-chip active" data-value="3" data-i18n="settings.time3">3 сек</button>
+              <button class="time-chip" data-value="5" data-i18n="settings.time5">5 сек</button>
+            </div>
+          </div>
+
           <div class="error-text" id="start-disabled-note" style="display:none;" data-i18n="setup.needAtLeastOne">Включи хотя бы «Число» или «Категорию»</div>
 
           <div class="modal-footer">
@@ -573,6 +591,29 @@
               <button data-value="river" data-i18n="setup.sublevelRiver">Рука+ривер</button>
             </div>
           </div>
+
+          <!-- Скрытие руки после показа: неприменимо к подуровню «5 карт» (нет
+               деления рука/борд) — дизейблится/затемняется через .row-disabled,
+               см. combinations.js updateComboCardDisplayAvailability. По умолчанию
+               выбран подуровень «5 карт», поэтому блок стартует затемнённым. -->
+          <div class="setting-block row-disabled" id="combo-hide-cards-block">
+            <div class="row">
+              <span class="row-label" data-i18n="settings.hideCards">Скрывать карты после показа</span>
+              <label class="switch">
+                <input type="checkbox" id="combo-hide-cards-toggle" disabled>
+                <span class="switch-track"></span>
+              </label>
+            </div>
+            <div class="setting-label" style="margin-top:18px;" data-i18n="settings.showTime">Время показа</div>
+            <div class="time-options disabled" id="combo-time-options">
+              <button class="time-chip" data-value="none" data-i18n="settings.timeNone">Без ограничения</button>
+              <button class="time-chip" data-value="0.5" data-i18n="settings.time0_5">0.5 сек</button>
+              <button class="time-chip" data-value="1" data-i18n="settings.time1">1 сек</button>
+              <button class="time-chip active" data-value="3" data-i18n="settings.time3">3 сек</button>
+              <button class="time-chip" data-value="5" data-i18n="settings.time5">5 сек</button>
+            </div>
+          </div>
+
           <div class="modal-footer">
             <button class="secondary-btn" id="combo-settings-cancel" data-i18n="setup.cancel">Отмена</button>
             <button class="primary-btn" id="combo-settings-ok" data-i18n="setup.ok" disabled>Ок</button>
@@ -588,6 +629,10 @@
           </div>
 
           <div id="combo-cards-area"></div>
+
+          <div class="timer-bar-track" id="combo-timer-track" style="display:none;">
+            <div class="timer-bar-fill" id="combo-timer-fill"></div>
+          </div>
 
           <div class="setting-label" style="margin-top:16px;" data-i18n="session.pickCombo">Какая это комбинация?</div>
           <div class="combo-options" id="combo-options"></div>
@@ -1240,6 +1285,12 @@
             <button class="time-chip active" data-value="3" data-i18n="settings.time3">3 сек</button>
             <button class="time-chip" data-value="5" data-i18n="settings.time5">5 сек</button>
           </div>
+
+          <!-- Не выбор, а расчётный статус: сравнивает настройки «Аутов» и
+               «Комбинаций» заново при каждом заходе на вкладку (см. router.js /
+               settings.js refreshCardDisplayStatus). Чекбокс/чипы выше при
+               изменении применяют значение сразу в обе тренировки. -->
+          <div class="card-display-status" id="card-display-status"></div>
         </div>
       </div>
 

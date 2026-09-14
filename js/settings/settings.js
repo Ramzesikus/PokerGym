@@ -9,21 +9,22 @@ import { state, tableBgs } from "../core/state.js";
 import { dict } from "../core/i18n.js";
 import { showSubview } from "../practice/practice-router.js";
 import { hubState } from "../practice/practice.js";
-import { refreshLanguageDisplay as refreshOutsLanguage, refreshCardFacesIfActive } from "../practice/trainings/outs.js";
-import { refreshLanguageDisplay as refreshComboLanguage } from "../practice/trainings/combinations.js";
+import { refreshLanguageDisplay as refreshOutsLanguage, refreshCardFacesIfActive, getOutsSettings, syncOutsSettingsUI, persistOutsSettings } from "../practice/trainings/outs.js";
+import { refreshLanguageDisplay as refreshComboLanguage, getComboSettings, syncComboSettingsUI, persistCombinationsSettings, applySettings as applyComboSettings } from "../practice/trainings/combinations.js";
 import { refreshPositionsLanguage } from "../practice/trainings/positions.js";
 import { showTheorySubview } from "../theory/theory.js";
 import { suitColor } from "../ui/card.js";
 import { loadSection, saveSection } from "../core/storage.js";
 
+  // hideCards/showTime больше не хранятся здесь (см. DECISIONS.md) — переехали
+  // в настройки каждой тренировки (outs/identifyCombo). Эта секция теперь
+  // хранит только по-настоящему общие поля.
   function persistGlobalSettings() {
     saveSection("global", {
       lang: state.lang,
       cardBack: state.cardBack,
       faceStyle: state.faceStyle,
-      tableBg: state.tableBg,
-      hideCards: state.hideCards,
-      showTime: state.showTime
+      tableBg: state.tableBg
     });
   }
 
@@ -83,20 +84,58 @@ import { loadSection, saveSection } from "../core/storage.js";
     });
   });
 
+  /* Показ карт — теперь не своё поле, а «применить всем тренировкам сразу»
+     (см. DECISIONS.md). Пишет в обе секции (outs/identifyCombo) напрямую,
+     каждой — через её же persist/get/sync, тот же контракт, что у шестерёнок. */
+
   const hideCardsToggle = document.getElementById("hide-cards-toggle");
   const timeOptions = document.getElementById("time-options");
-  hideCardsToggle.addEventListener("change", () => {
+  const cardDisplayStatusEl = document.getElementById("card-display-status");
+
+  function computeCardDisplayStatus() {
+    const o = getOutsSettings();
+    const c = getComboSettings();
+    return (o.hideCards === c.hideCards && o.showTime === c.showTime) ? "same" : "different";
+  }
+
+  // Вызывается при каждом заходе на вкладку «Настройки» (см. router.js) —
+  // синхронизирует видимые чекбокс/чипы с текущим значением «Аутов» (как
+  // отправная точка для «применить всем») и пересчитывает статус-бар.
+  export function refreshCardDisplayStatus() {
+    const o = getOutsSettings();
+    hideCardsToggle.checked = o.hideCards;
+    timeOptions.classList.toggle("disabled", !o.hideCards);
+    timeOptions.querySelectorAll(".time-chip").forEach(c => c.classList.toggle("active", c.dataset.value === o.showTime));
+
+    const status = computeCardDisplayStatus();
+    cardDisplayStatusEl.textContent = dict[state.lang][status === "same" ? "settings.cardDisplayStatusSame" : "settings.cardDisplayStatusDifferent"];
+  }
+
+  function applyCardDisplayToAll() {
     state.hideCards = hideCardsToggle.checked;
-    timeOptions.classList.toggle("disabled", !state.hideCards);
-    persistGlobalSettings();
+    const activeChip = timeOptions.querySelector(".time-chip.active");
+    if (activeChip) state.showTime = activeChip.dataset.value;
+
+    persistOutsSettings();
+    syncOutsSettingsUI(getOutsSettings());
+
+    applyComboSettings({ hideCards: state.hideCards, showTime: state.showTime });
+    persistCombinationsSettings();
+    syncComboSettingsUI(getComboSettings());
+
+    refreshCardDisplayStatus();
+  }
+
+  hideCardsToggle.addEventListener("change", () => {
+    timeOptions.classList.toggle("disabled", !hideCardsToggle.checked);
+    applyCardDisplayToAll();
   });
 
   timeOptions.querySelectorAll(".time-chip").forEach(chip => {
     chip.addEventListener("click", () => {
       timeOptions.querySelectorAll(".time-chip").forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
-      state.showTime = chip.dataset.value;
-      persistGlobalSettings();
+      applyCardDisplayToAll();
     });
   });
 
@@ -192,15 +231,6 @@ import { loadSection, saveSection } from "../core/storage.js";
       state.lang = savedGlobalSettings.lang;
       langSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === state.lang));
       applyLanguage();
-    }
-    if (savedGlobalSettings.hideCards !== undefined) {
-      state.hideCards = savedGlobalSettings.hideCards;
-      hideCardsToggle.checked = state.hideCards;
-      timeOptions.classList.toggle("disabled", !state.hideCards);
-    }
-    if (savedGlobalSettings.showTime !== undefined) {
-      state.showTime = savedGlobalSettings.showTime;
-      timeOptions.querySelectorAll(".time-chip").forEach(c => c.classList.toggle("active", c.dataset.value === state.showTime));
     }
     if (savedGlobalSettings.cardBack !== undefined) {
       state.cardBack = savedGlobalSettings.cardBack;

@@ -7,7 +7,9 @@ import { dict } from "./core/i18n.js";
 import { showSubview, updateHeaderRightSlot, setHeaderMainMode } from "./practice/practice-router.js";
 import { showTheorySubview } from "./theory/theory.js";
 import { stopTimer } from "./practice/trainings/outs.js";
+import { stopComboTimer } from "./practice/trainings/combinations.js";
 import { hubExitEdit } from "./practice/practice.js";
+import { refreshCardDisplayStatus } from "./settings/settings.js";
 
   const navButtons = document.querySelectorAll("nav button");
   const screens = document.querySelectorAll(".screen");
@@ -17,6 +19,7 @@ import { hubExitEdit } from "./practice/practice.js";
   navButtons.forEach(btn => {
     btn.addEventListener("click", () => {
       stopTimer();
+      stopComboTimer();
       if (typeof hubExitEdit === "function") hubExitEdit();
       const tab = btn.dataset.tab;
       navButtons.forEach(b => b.classList.remove("active"));
@@ -27,13 +30,17 @@ import { hubExitEdit } from "./practice/practice.js";
       headerTitle.textContent = dict[state.lang][btn.dataset.i18nTitle];
       if (tab === "free") showSubview("hub");
       else if (tab === "theory") showTheorySubview("theory-hub");
-      else setHeaderMainMode(true);
+      else {
+        setHeaderMainMode(true);
+        if (tab === "settings") refreshCardDisplayStatus();
+      }
     });
   });
 
 
   backBtn.addEventListener("click", () => {
     stopTimer();
+    stopComboTimer();
     const activeScreen = document.querySelector(".screen.active");
     const screenName = activeScreen ? activeScreen.dataset.screen : null;
 

@@ -700,6 +700,17 @@
     opacity: 0.4;
   }
 
+  #combo-hide-cards-block.row-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .card-display-status {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
   .card-slot-row {
     display: flex;
     gap: 8px;

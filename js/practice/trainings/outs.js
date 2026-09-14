@@ -3,19 +3,19 @@
 // -logic.js/-ui.js отложено — приоритет сейчас: рабочее приложение целиком,
 // см. ARCHITECTURE.md).
 
-import { state, RANK_VALUE, SUITS, DRAW_TYPES, OTHER_OUT_TYPES } from "../../core/state.js";
+import { state, RANK_VALUE, RANKS, SUITS, DRAW_TYPES, OTHER_OUT_TYPES } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { buildDeck, shuffle } from "../../core/deck.js";
-import { classifyCategories, computeOuts, displayCategoryIndex, CATEGORY_NAMES, evaluateBest } from "../../core/hand-eval.js";
-import { cardEl } from "../../ui/card.js";
+import { classifyCategories, computeOuts, displayCategoryIndex, CATEGORY_NAMES, evaluateBest, cardId } from "../../core/hand-eval.js";
+import { cardEl, suitColor, displayRank } from "../../ui/card.js";
 import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 
   let currentDeal = null;
   let timerHandle = null;
 
-  const TRAINING_WEIGHTS = [15.23, 19.18, 16.41, 11.05, 10.93, 9.84, 9.47, 4.79, 2.20, 0.90];
-  const REAL_PROBS = [17.41, 43.82, 23.50, 4.83, 4.62, 3.03, 2.60, 0.17, 0.028, 0.003];
+  export const TRAINING_WEIGHTS = [15.23, 19.18, 16.41, 11.05, 10.93, 9.84, 9.47, 4.79, 2.20, 0.90];
+  export const REAL_PROBS = [17.41, 43.82, 23.50, 4.83, 4.62, 3.03, 2.60, 0.17, 0.028, 0.003];
 
   export function pickTargetCategory() {
     const total = TRAINING_WEIGHTS.reduce((a, b) => a + b, 0);
@@ -269,6 +269,15 @@ import { loadSection, saveSection } from "../../core/storage.js";
     }
     err.textContent = "";
 
+    // Раскрываем руку и глушим таймер, если она ещё скрыта — иначе подсветку
+    // при разборе (show-breakdown) и сам факт проверки не видно за рубашками,
+    // и скрытие могло бы сработать позже, уже во время просмотра результата.
+    stopTimer();
+    if (cardsCurrentlyHiddenByTimer) {
+      renderHand(true);
+      cardsCurrentlyHiddenByTimer = false;
+    }
+
     const classification = classifyCategories(currentDeal.hand, currentDeal.board);
     currentClassification = classification;
     const realCount = classification.totalCount;
@@ -450,13 +459,15 @@ import { loadSection, saveSection } from "../../core/storage.js";
     }
   }
 
-  function persistOutsSettings() {
+  export function persistOutsSettings() {
     saveSection("outs", {
       wantNumber: state.wantNumber,
       wantCategory: state.wantCategory,
       wantPercategory: state.wantPercategory,
       street: state.street,
-      outputMode: state.outputMode
+      outputMode: state.outputMode,
+      hideCards: state.hideCards,
+      showTime: state.showTime
     });
   }
 
@@ -464,24 +475,50 @@ import { loadSection, saveSection } from "../../core/storage.js";
   // реально что-то изменилось и настройки валидны, Отмена откатывает без следа.
   let outsSettingsSnapshot = null;
 
-  function getOutsSettings() {
+  export function getOutsSettings() {
     return {
       wantNumber: state.wantNumber,
       wantCategory: state.wantCategory,
       wantPercategory: state.wantPercategory,
       street: state.street,
-      outputMode: state.outputMode
+      outputMode: state.outputMode,
+      hideCards: state.hideCards,
+      showTime: state.showTime
     };
   }
 
-  function syncOutsSettingsUI(s) {
+  export function syncOutsSettingsUI(s) {
     wantNumberToggle.checked = s.wantNumber;
     wantCategoryToggle.checked = s.wantCategory;
     wantPercategoryToggle.checked = s.wantPercategory;
     streetSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.street));
     outputModeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.outputMode));
+    outsHideCardsToggle.checked = s.hideCards;
+    outsTimeOptions.classList.toggle("disabled", !s.hideCards);
+    outsTimeOptions.querySelectorAll(".time-chip").forEach(c => c.classList.toggle("active", c.dataset.value === s.showTime));
     updatePercategoryAvailability();
   }
+
+  // Своя пара «скрывать карты / время показа» — теперь настройка самой тренировки
+  // (раньше жила в global, см. DECISIONS.md), тот же контракт снимок+Ок/Отмена,
+  // что у остальных полей этой модалки. Вкладка «Настройки» управляет обеими
+  // тренировками сразу через persistOutsSettings/getOutsSettings/syncOutsSettingsUI,
+  // экспортированные здесь же.
+  const outsHideCardsToggle = document.getElementById("outs-hide-cards-toggle");
+  const outsTimeOptions = document.getElementById("outs-time-options");
+  outsHideCardsToggle.addEventListener("change", () => {
+    state.hideCards = outsHideCardsToggle.checked;
+    outsTimeOptions.classList.toggle("disabled", !state.hideCards);
+    checkOutsSettingsDirty();
+  });
+  outsTimeOptions.querySelectorAll(".time-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      outsTimeOptions.querySelectorAll(".time-chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      state.showTime = chip.dataset.value;
+      checkOutsSettingsDirty();
+    });
+  });
 
   function checkOutsSettingsDirty() {
     const valid = state.wantNumber || state.wantCategory;
@@ -563,13 +600,15 @@ import { loadSection, saveSection } from "../../core/storage.js";
   }
 
   // Точка входа для программного запуска (Обучариум) — см. DECISIONS.md.
-  // settings: { wantNumber, wantCategory, wantPercategory, street }
+  // settings: { wantNumber, wantCategory, wantPercategory, street, hideCards, showTime }
   export function applySettings(settings) {
     if (settings.wantNumber !== undefined) state.wantNumber = settings.wantNumber;
     if (settings.wantCategory !== undefined) state.wantCategory = settings.wantCategory;
     if (settings.wantPercategory !== undefined) state.wantPercategory = settings.wantPercategory;
     if (settings.street !== undefined) state.street = settings.street;
     if (settings.outputMode !== undefined) state.outputMode = settings.outputMode;
+    if (settings.hideCards !== undefined) state.hideCards = settings.hideCards;
+    if (settings.showTime !== undefined) state.showTime = settings.showTime;
   }
 
   registerTrainingEntry("outs", (settings) => {
