@@ -219,18 +219,28 @@
           <div class="setting-block">
             <div class="pos-range-row">
               <span class="setting-label" data-i18n="posSetup.range">Число игроков</span>
-              <div class="pos-stepper-group">
-                <div class="pos-stepper" aria-label="От">
-                  <button type="button" class="pos-stepper-btn" id="pos-n-min-minus" aria-label="Меньше">−</button>
-                  <span class="pos-stepper-value" id="pos-n-min-value">6</span>
-                  <button type="button" class="pos-stepper-btn" id="pos-n-min-plus" aria-label="Больше">+</button>
-                </div>
-                <span class="pos-stepper-dash">—</span>
-                <div class="pos-stepper" aria-label="До">
-                  <button type="button" class="pos-stepper-btn" id="pos-n-max-minus" aria-label="Меньше">−</button>
-                  <span class="pos-stepper-value" id="pos-n-max-value">6</span>
-                  <button type="button" class="pos-stepper-btn" id="pos-n-max-plus" aria-label="Больше">+</button>
-                </div>
+              <div class="pos-select-group">
+                <select class="pos-select" id="pos-n-min" aria-label="От">
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6" selected>6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                </select>
+                <span class="pos-select-dash">—</span>
+                <select class="pos-select" id="pos-n-max" aria-label="До">
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6" selected>6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                </select>
               </div>
             </div>
             <div class="error-text" id="pos-range-error"></div>

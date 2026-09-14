@@ -7,7 +7,7 @@ import { state, DRAW_TYPES, OTHER_OUT_TYPES } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { buildDeck, shuffle } from "../../core/deck.js";
 import { classifyCategories, displayCategoryIndex, CATEGORY_NAMES, evaluateBest, cardId } from "../../core/hand-eval.js";
-import { cardEl, suitColor, displayRank } from "../../ui/card.js";
+import { cardEl, suitColor, displayRank, suitSymbols } from "../../ui/card.js";
 import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
 

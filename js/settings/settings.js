@@ -31,6 +31,10 @@ import { loadSection, saveSection } from "../core/storage.js";
   /* Language */
 
   function applyLanguage() {
+    // <html lang> раньше был статичным "ru" и не обновлялся при переключении —
+    // некритично само по себе, но важно для hyphens:auto (см. чат): без верного
+    // lang браузер переносит английский текст по русским правилам.
+    document.documentElement.lang = state.lang;
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
       if (dict[state.lang][key]) el.textContent = dict[state.lang][key];

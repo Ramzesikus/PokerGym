@@ -14,7 +14,7 @@ export function suitColor(suit, faceStyle) {
   return "#1c1e20";
 }
 
-const suitSymbols = { hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" };
+export const suitSymbols = { hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" };
 
 export function displayRank(rank) {
   // T — общепринятое обозначение десятки в покерной нотации, не переводим в "10".

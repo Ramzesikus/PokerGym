@@ -243,6 +243,9 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    min-height: calc(1.25em * 2);
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
   .hub-card.compact .hub-sub { display: none; }
 
@@ -641,7 +644,7 @@
 
   .sublevel-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 8px;
     margin-top: 8px;
   }
@@ -652,9 +655,12 @@
     color: inherit;
     font-size: 13px;
     font-family: inherit;
-    padding: 14px 8px;
+    padding: 14px 4px;
     border-radius: 8px;
     cursor: pointer;
+    text-align: center;
+    hyphens: auto;
+    overflow-wrap: break-word;
     text-align: center;
   }
 
@@ -685,7 +691,7 @@
   .hub-group-label:first-child { margin-top: 0; }
 
   .hub-group-chevron {
-    font-size: 15px;
+    font-size: 22px;
     font-style: normal;
     display: inline-block;
     transition: transform .15s;
@@ -826,8 +832,7 @@
   }
 
   .eq-recalc-btn {
-    width: auto;
-    flex-shrink: 0;
+    flex: 1;
     height: 42px;
     box-sizing: border-box;
     padding: 0 20px;
@@ -912,7 +917,7 @@
     background: none;
     border: none;
     color: #4fa3ff;
-    font-size: 17px;
+    font-size: 22px;
     line-height: 1;
     font-family: inherit;
     cursor: pointer;
@@ -1388,6 +1393,7 @@
     margin-left: auto;
     color: var(--muted, #8a8f96);
     font-weight: 400;
+    font-size: 18px;
   }
 
   .glossary-term[open] summary::after { content: "–"; }
@@ -1510,13 +1516,36 @@
      комбинации может переноситься на 2 строки в узкой модалке (согласовано в
      чате), но высота строк-данных должна быть одинаковой вне зависимости от
      переноса — фиксированная min-height на td, не на всю таблицу. */
+  /* Модалка вероятностей «Комбинаций» — 5 колонок. Ширины и font-size подобраны
+     по реальным замерам ширины текста (см. чат) — «Тренировочная» перенос на 2
+     строки, не 3 (было), запас на случай, если браузер выберет другую точку
+     переноса, чем при замере. Первая колонка тоже переносится (включая сам
+     заголовок «Комбинация») — компактнее, место уходит на «Тренировочную».
+     Высота строк-данных одинаковая вне зависимости от переноса — фиксированная
+     высота на td, не на всю таблицу. */
   #probs-modal-table {
     table-layout: fixed;
-    font-size: 12px;
+    font-size: 11px;
   }
-  #probs-modal-table th:first-child, #probs-modal-table td:first-child { width: 26%; text-align: left; }
-  #probs-modal-table th:not(:first-child), #probs-modal-table td:not(:first-child) { width: 18.5%; text-align: right; }
-  #probs-modal-table tr:not(:first-child) td { height: 34px; }
+  #probs-modal-table th, #probs-modal-table td { padding: 6px 4px; }
+  #probs-modal-table th:first-child, #probs-modal-table td:first-child {
+    width: 19%;
+    text-align: left;
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+  #probs-modal-table th:nth-child(2), #probs-modal-table td:nth-child(2),
+  #probs-modal-table th:nth-child(3), #probs-modal-table td:nth-child(3),
+  #probs-modal-table th:nth-child(4), #probs-modal-table td:nth-child(4) {
+    width: 20%;
+    text-align: right;
+  }
+  #probs-modal-table th:last-child, #probs-modal-table td:last-child {
+    width: 21%;
+    text-align: right;
+  }
+  #probs-modal-table th { hyphens: auto; overflow-wrap: break-word; }
+  #probs-modal-table tr:not(:first-child) td { height: 42px; }
 
   .combos-table {
     font-size: 12px;
@@ -1556,36 +1585,18 @@
 
   .pos-range-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 
-  .pos-stepper-group { display: flex; align-items: center; gap: 8px; }
+  .pos-select-group { display: flex; align-items: center; gap: 8px; }
 
-  .pos-stepper {
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--divider, #2a2e33);
-    border-radius: var(--radius, 8px);
-    overflow: hidden;
-  }
-
-  .pos-stepper-btn {
-    background: var(--well, #1f2327);
-    color: inherit;
-    border: none;
-    font-family: inherit;
-    font-size: 15px;
-    line-height: 1;
-    padding: 7px 11px;
-    cursor: pointer;
-  }
-  .pos-stepper-btn:disabled { opacity: 0.35; pointer-events: none; }
-
-  .pos-stepper-value {
-    width: 22px;
+  .pos-select-group .pos-select {
+    width: 56px;
+    height: 38px;
+    padding: 0 8px;
     text-align: center;
-    font-size: 14px;
-    font-weight: 600;
+    text-align-last: center;
+    box-sizing: border-box;
   }
 
-  .pos-stepper-dash { color: var(--muted, #8a8f96); font-size: 13px; }
+  .pos-select-dash { color: var(--muted, #8a8f96); font-size: 13px; }
 
   .pos-table-wrap {
     position: relative;
@@ -1706,7 +1717,8 @@
     cursor: pointer;
   }
 
-  .pos-option-btn:disabled { opacity: .35; cursor: default; }
+  .pos-option-btn:disabled:not(.answer-correct):not(.answer-incorrect) { opacity: .35; cursor: default; }
+  .pos-option-btn:disabled { cursor: default; }
   .pos-option-btn.pos-option-used { opacity: .45; }
 
   .pos-hints-row { display: flex; gap: 8px; margin: 16px 0 6px; }

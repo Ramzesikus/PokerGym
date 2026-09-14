@@ -134,11 +134,11 @@ import { loadSection, saveSection } from "../../core/storage.js";
     const ratioOf = dict[state.lang]["notSession.ratioOf"] || "\u0438\u0437";
     if (unit === "ratio") {
       const ratio = 100 / prob;
-      return b.expr + " = " + b.total + " \u2192 1326\u2044" + b.total + " \u2248 1 " + ratioOf + " " + ratio.toFixed(1);
+      return b.expr + " = " + b.total + " \u2192 1326/" + b.total + " \u2248 1 " + ratioOf + " " + ratio.toFixed(1);
     }
     // "expr = total / 1326" была бы ложной цепочкой равенств (total ≠ total/1326) — разрываем
     // стрелкой, как и в ratio-варианте: сначала посчитали total, отдельно — саму вероятность.
-    return b.expr + " = " + b.total + " \u2192 " + b.total + "\u2044" + "1326 \u2248 " + prob.toFixed(1) + "%";
+    return b.expr + " = " + b.total + " \u2192 " + b.total + "/1326 \u2248 " + prob.toFixed(1) + "%";
   }
 
   function notGenProbChoices(trueProb, unit) {

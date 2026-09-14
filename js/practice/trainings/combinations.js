@@ -354,6 +354,34 @@ import { loadSection, saveSection } from "../../core/storage.js";
     return pct.toFixed(6);
   }
 
+  // Только для строки флеш-рояля (idx 9) — на телефоне 5 знаков после запятой
+  // слипаются, по прямому решению Романа на одну значащую цифру меньше, чем
+  // обычное правило fmtProb. Считает от точного значения (REAL_PROBS_5/6/[9]
+  // хранят полную точность), не переокругляет уже показанное — иначе то самое
+  // двойное округление, что уже один раз дало неверный результат в чате.
+  function fmtProbCoarse(pct) {
+    let fineDec = 6;
+    for (let dec = 2; dec <= 6; dec++) {
+      const s = pct.toFixed(dec);
+      const frac = s.split(".")[1];
+      const firstNonZero = [...frac].findIndex(ch => ch !== "0");
+      if (firstNonZero === -1) continue;
+      if (frac.length - firstNonZero >= 2) { fineDec = dec; break; }
+    }
+    return pct.toFixed(Math.max(fineDec - 1, 0));
+  }
+
+  // До фулл-хауса включительно (idx 0-6) — всегда ровно 2 знака, без вариативной
+  // точности: там эти числа не мелкие, «живые цифры» только усложняли вид
+  // (11.050%, 1.011% и т.п.) без необходимости. Вариативная точность остаётся
+  // только для по-настоящему редких категорий (Каре/Стрит-флеш — fmtProb,
+  // Флеш-рояль — fmtProbCoarse), где она реально нужна для читаемости.
+  function fmtProbByRow(pct, idx) {
+    if (idx <= 6) return pct.toFixed(2);
+    if (idx === 9) return fmtProbCoarse(pct);
+    return fmtProb(pct);
+  }
+
   document.getElementById("show-probs-modal").addEventListener("click", () => {
     const t = dict[state.lang];
     const table = document.getElementById("probs-modal-table");
@@ -363,7 +391,11 @@ import { loadSection, saveSection } from "../../core/storage.js";
     table.appendChild(headerRow);
     CATEGORY_NAMES[state.lang].forEach((name, idx) => {
       const row = document.createElement("tr");
-      row.innerHTML = "<td>" + name + "</td><td>" + fmtProb(REAL_PROBS_5[idx]) + "%</td><td>" + fmtProb(REAL_PROBS_6[idx]) + "%</td><td>" + fmtProb(REAL_PROBS[idx]) + "%</td><td>" + fmtProb(TRAINING_WEIGHTS[idx]) + "%</td>";
+      const fmt5 = fmtProbByRow(REAL_PROBS_5[idx], idx);
+      const fmt6 = fmtProbByRow(REAL_PROBS_6[idx], idx);
+      const fmt7 = fmtProbByRow(REAL_PROBS[idx], idx);
+      const fmtT = fmtProbByRow(TRAINING_WEIGHTS[idx], idx);
+      row.innerHTML = "<td>" + name + "</td><td>" + fmt5 + "%</td><td>" + fmt6 + "%</td><td>" + fmt7 + "%</td><td>" + fmtT + "%</td>";
       table.appendChild(row);
     });
     document.getElementById("probs-modal").classList.add("show");

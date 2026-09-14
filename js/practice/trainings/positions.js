@@ -322,30 +322,14 @@ import { loadSection, saveSection } from "../../core/storage.js";
     });
   });
 
-  const posNMinValue = document.getElementById("pos-n-min-value");
-  const posNMaxValue = document.getElementById("pos-n-max-value");
-  const posNMinMinus = document.getElementById("pos-n-min-minus");
-  const posNMinPlus = document.getElementById("pos-n-min-plus");
-  const posNMaxMinus = document.getElementById("pos-n-max-minus");
-  const posNMaxPlus = document.getElementById("pos-n-max-plus");
-  const POS_N_LOW = 2, POS_N_HIGH = 9;
-
-  // Степперы «От»/«До» — независимые, без блокировки друг относительно друга
-  // (см. чат): единственные жёсткие границы — абсолютные 2 и 9, не значение
-  // соседнего поля. Иначе, поправляя один край, можно было бы временно упереться
-  // в другой и застрять, пока не откатишь его обратно.
-  function syncPosRangeUI() {
-    posNMinValue.textContent = posState.minN;
-    posNMaxValue.textContent = posState.maxN;
-    posNMinMinus.disabled = posState.minN <= POS_N_LOW;
-    posNMinPlus.disabled = posState.minN >= POS_N_HIGH;
-    posNMaxMinus.disabled = posState.maxN <= POS_N_LOW;
-    posNMaxPlus.disabled = posState.maxN >= POS_N_HIGH;
-  }
+  const posNMin = document.getElementById("pos-n-min");
+  const posNMax = document.getElementById("pos-n-max");
 
   function validatePosRange() {
+    const min = parseInt(posNMin.value, 10);
+    const max = parseInt(posNMax.value, 10);
     const errEl = document.getElementById("pos-range-error");
-    if (posState.minN > posState.maxN) {
+    if (min > max) {
       errEl.textContent = dict[state.lang]["posSetup.rangeError"];
       return false;
     }
@@ -353,17 +337,14 @@ import { loadSection, saveSection } from "../../core/storage.js";
     return true;
   }
 
-  function stepPosN(field, delta) {
-    const next = posState[field] + delta;
-    if (next < POS_N_LOW || next > POS_N_HIGH) return;
-    posState[field] = next;
-    syncPosRangeUI();
+  function onPosRangeChange() {
+    if (!validatePosRange()) { checkPositionsSettingsDirty(); return; }
+    posState.minN = parseInt(posNMin.value, 10);
+    posState.maxN = parseInt(posNMax.value, 10);
     checkPositionsSettingsDirty();
   }
-  posNMinMinus.addEventListener("click", () => stepPosN("minN", -1));
-  posNMinPlus.addEventListener("click", () => stepPosN("minN", 1));
-  posNMaxMinus.addEventListener("click", () => stepPosN("maxN", -1));
-  posNMaxPlus.addEventListener("click", () => stepPosN("maxN", 1));
+  posNMin.addEventListener("change", onPosRangeChange);
+  posNMax.addEventListener("change", onPosRangeChange);
 
   export function runPositionsSession() {
     showSubview("session-positions");
@@ -374,12 +355,8 @@ import { loadSection, saveSection } from "../../core/storage.js";
   let positionsSettingsSnapshot = null;
 
   function syncPositionsSettingsUI(s) {
-    posNMinValue.textContent = s.minN;
-    posNMaxValue.textContent = s.maxN;
-    posNMinMinus.disabled = s.minN <= POS_N_LOW;
-    posNMinPlus.disabled = s.minN >= POS_N_HIGH;
-    posNMaxMinus.disabled = s.maxN <= POS_N_LOW;
-    posNMaxPlus.disabled = s.maxN >= POS_N_HIGH;
+    posNMin.value = s.minN;
+    posNMax.value = s.maxN;
     posFormatSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.format));
     posSchoolSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.value === s.school));
   }
