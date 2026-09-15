@@ -256,12 +256,18 @@
   }
   .hub-card.compact .hub-sub { display: none; }
 
-  /* «Комбинации»/«Combinations» — единственная плитка, где перенос по слогам
-     всё ещё нужен: однословный заголовок без пробелов, который на 76px-плитке
-     физически не помещается в 2 строки без разбивки внутри слова (в отличие
-     от «Мнемоники»/«positions» выше — там 2 строки хватало и без переноса).
-     Точечное включение, не глобальное правило. */
-  .hub-card[data-module="identify-combo"].compact .hub-title {
+  /* Однословные заголовки без пробелов, которые на 76px-плитке физически не
+     помещаются в 2 строки без разбивки внутри слова — перенос по слогам
+     нужен именно им, не остальным (у «Расчёт эквити»/«Table positions» и
+     т.п. хватает переноса по границе слова, см. правило по умолчанию выше).
+     «Мнемоника» сюда добавлена по факту: без hyphens:auto здесь браузер
+     переносил единственный оставшийся символ («а») на отдельную строку —
+     то же самое, чего мы и добивались избежать общим правилом выше, просто
+     здесь перенос неизбежен, и без syllable-aware словаря он получается
+     некрасивым. Список составлен эмпирически, не по формуле длины слова —
+     при появлении похожей жалобы на другую плитку сюда же. */
+  .hub-card[data-module="identify-combo"].compact .hub-title,
+  .hub-card[data-module="mnemonic"].compact .hub-title {
     hyphens: auto;
   }
 
@@ -661,21 +667,33 @@
   /* «Мнемоника» — тот же ряд «подпись + значение», но своё правило: явный
      margin-bottom (у .total-answer-row его нет — раньше не требовался, за ним
      никогда не шла .timer-bar-track впритык, см. чат: поле слипалось с
-     полосой времени примера). */
+     полосой времени примера). Отступ сверху и увеличенный размер текста
+     примера — по прямому решению Романа, места в карточке хватало с запасом. */
   .mnemo-example-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 16px;
+    margin: 12px 0 20px;
+  }
+
+  #mnemo-example-text {
+    font-size: 22px;
+    font-weight: 600;
   }
 
   /* Дисплей набранного ответа — не <input>: сама тренировка не открывает
      нативную клавиатуру устройства, весь ввод идёт через .mnemo-keypad ниже
-     (плюс физическая клавиатура на десктопе, см. mnemonics.js). */
+     (плюс физическая клавиатура на десктопе, см. mnemonics.js).
+     display:inline-block обязателен — у строчных элементов width/height
+     (и min-width/min-height) браузер игнорирует по спецификации, из-за чего
+     пустой <span> держался почти на одном padding и «прыгал» при первой же
+     набранной цифре (см. чат). Фиксированные (не min-) width/height — чтобы
+     размер вообще не зависел от того, сколько цифр набрано. */
   .mnemo-answer-display {
-    min-width: 56px;
-    min-height: 20px;
+    display: inline-block;
+    width: 64px;
+    height: 20px;
     text-align: center;
     font-size: 16px;
     padding: 8px;
@@ -690,7 +708,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
-    margin-top: 4px;
+    margin-top: 20px;
   }
 
   .mnemo-key {
@@ -799,6 +817,22 @@
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  /* «Мнемоника», фаза «Вспомнить» — точечные отступы, не трогая общие
+     .card-slot-row/.error-text (используются и в калькуляторах, где такой
+     порядок соседства не встречается). Порядок в разметке нарочно
+     «карты → кнопки → обратная связь» (см. DECISIONS.md) — сама разметка
+     решает проблему «кнопка прыгает вниз», эти отступы — только зазоры между
+     соседними блоками в этом порядке. */
+  #mnemo-recall-slots {
+    margin-bottom: 16px;
+  }
+  #mnemo-recall-error {
+    margin-top: 16px;
+  }
+  #mnemo-correct-row {
     margin-top: 8px;
   }
 
@@ -1394,13 +1428,19 @@
 
   .back-swatch.active { outline: 2px solid #4fa3ff; outline-offset: 2px; }
 
+  /* width шире самой рубашки (44px) — короткие подписи и так укладывались,
+     а «Минимализм»/«Красная классика» не помещались в 44px и вылезали за
+     границы без переноса (overflow-wrap решает перенос, width — сам зазор
+     до соседней колонки), из-за чего часть подписей визуально съезжала
+     влево вместо центрирования под своей рубашкой (см. чат). */
   .chip-label {
     font-size: 11px;
     color: var(--muted, #6b7076);
     text-align: center;
     margin-top: 6px;
-    width: 44px;
+    width: 64px;
     min-height: 28px;
+    overflow-wrap: break-word;
   }
 
   .swatch-col { display: flex; flex-direction: column; align-items: center; }
