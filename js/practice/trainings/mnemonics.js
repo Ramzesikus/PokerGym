@@ -335,8 +335,10 @@ import { loadSection, saveSection } from "../../core/storage.js";
     stopMnemoExTimer();
     showMnemoPhase("recall");
     mnemoRecall = [null, null];
-    document.getElementById("mnemo-recall-error").style.display = "none";
-    document.getElementById("mnemo-correct-row").style.display = "none";
+    const verdict = document.getElementById("mnemo-recall-verdict");
+    verdict.textContent = "";
+    verdict.className = "mnemo-verdict";
+    document.getElementById("mnemo-correct-row").innerHTML = "";
     document.getElementById("mnemo-check-recall").style.display = "block";
     document.getElementById("mnemo-check-recall").disabled = true;
     document.getElementById("mnemo-next-round").style.display = "none";
@@ -355,25 +357,23 @@ import { loadSection, saveSection } from "../../core/storage.js";
       slot.classList.add(isCorrect ? "field-correct" : "field-incorrect");
     });
 
-    const err = document.getElementById("mnemo-recall-error");
+    const verdict = document.getElementById("mnemo-recall-verdict");
     const correctRow = document.getElementById("mnemo-correct-row");
     if (isCorrect) {
-      err.style.display = "none";
-      correctRow.style.display = "none";
+      verdict.textContent = dict[state.lang]["session.mnemoRecallCorrect"];
+      verdict.className = "mnemo-verdict correct";
       mnemoState.correctCount += 1;
     } else {
-      // Верный ответ — теми же отрисованными картами, что и в фазе показа
-      // (cardEl), не текстом с символами масти: разные форматы для одной и
-      // той же информации сбивали с толку (см. чат).
-      err.textContent = dict[state.lang]["session.mnemoIncorrectShow"];
-      err.style.display = "block";
-      correctRow.innerHTML = "";
+      // Верный ответ — рядом с выбранным, теми же отрисованными картами, что
+      // и в фазе показа (cardEl), не текстом с символами масти и не под
+      // кнопкой отдельным блоком (см. чат — прежний вариант не понравился).
+      verdict.textContent = dict[state.lang]["session.mnemoRecallIncorrect"];
+      verdict.className = "mnemo-verdict incorrect";
       mnemoDeal.cards.forEach(c => {
         const el = cardEl(c, true, state.faceStyle, state.cardBack);
         el.classList.add("card-hand");
         correctRow.appendChild(el);
       });
-      correctRow.style.display = "flex";
     }
     mnemoState.answeredCount += 1;
 
