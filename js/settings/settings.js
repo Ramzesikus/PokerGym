@@ -11,6 +11,7 @@ import { showSubview } from "../practice/practice-router.js";
 import { hubState } from "../practice/practice.js";
 import { refreshLanguageDisplay as refreshOutsLanguage, refreshCardFacesIfActive, getOutsSettings, syncOutsSettingsUI, persistOutsSettings } from "../practice/trainings/outs.js";
 import { refreshLanguageDisplay as refreshComboLanguage, getComboSettings, syncComboSettingsUI, persistCombinationsSettings, applySettings as applyComboSettings } from "../practice/trainings/combinations.js";
+import { getMnemonicSettings, syncMnemonicSettingsUI, persistMnemonicSettings, applySettings as applyMnemonicSettings } from "../practice/trainings/mnemonics.js";
 import { refreshPositionsLanguage } from "../practice/trainings/positions.js";
 import { showTheorySubview } from "../theory/theory.js";
 import { suitColor } from "../ui/card.js";
@@ -96,10 +97,16 @@ import { loadSection, saveSection } from "../core/storage.js";
   const timeOptions = document.getElementById("time-options");
   const cardDisplayStatusEl = document.getElementById("card-display-status");
 
+  // «Мнемоника» участвует в этом же сравнении, но у неё нет тумблера
+  // hideCards — показ там скрывается всегда (см. mnemonics.js/DECISIONS.md).
+  // Поэтому «одинаково» требует ещё и того, чтобы «Ауты»/«Комбинации» сами
+  // скрывали карты (иначе они принципиально отличаются от «Мнемоники», которая
+  // скрывает всегда) — плюс совпадение всех трёх значений времени показа.
   function computeCardDisplayStatus() {
     const o = getOutsSettings();
     const c = getComboSettings();
-    return (o.hideCards === c.hideCards && o.showTime === c.showTime) ? "same" : "different";
+    const m = getMnemonicSettings();
+    return (o.hideCards && c.hideCards && o.showTime === c.showTime && o.showTime === m.showTime) ? "same" : "different";
   }
 
   // Вызывается при каждом заходе на вкладку «Настройки» (см. router.js) —
@@ -126,6 +133,12 @@ import { loadSection, saveSection } from "../core/storage.js";
     applyComboSettings({ hideCards: state.hideCards, showTime: state.showTime });
     persistCombinationsSettings();
     syncComboSettingsUI(getComboSettings());
+
+    // «Мнемонике» из этой пары нужно только время — у неё нет своего hideCards
+    // (показ скрывается всегда), передавать его незачем и нечем.
+    applyMnemonicSettings({ showTime: state.showTime });
+    persistMnemonicSettings();
+    syncMnemonicSettingsUI(getMnemonicSettings());
 
     refreshCardDisplayStatus();
   }

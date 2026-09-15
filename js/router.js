@@ -8,6 +8,7 @@ import { showSubview, updateHeaderRightSlot, setHeaderMainMode } from "./practic
 import { showTheorySubview } from "./theory/theory.js";
 import { stopTimer } from "./practice/trainings/outs.js";
 import { stopComboTimer } from "./practice/trainings/combinations.js";
+import { stopMnemoTimer, stopMnemoExTimer } from "./practice/trainings/mnemonics.js";
 import { hubExitEdit } from "./practice/practice.js";
 import { refreshCardDisplayStatus } from "./settings/settings.js";
 
@@ -20,6 +21,8 @@ import { refreshCardDisplayStatus } from "./settings/settings.js";
     btn.addEventListener("click", () => {
       stopTimer();
       stopComboTimer();
+      stopMnemoTimer();
+      stopMnemoExTimer();
       if (typeof hubExitEdit === "function") hubExitEdit();
       const tab = btn.dataset.tab;
       navButtons.forEach(b => b.classList.remove("active"));
@@ -41,6 +44,8 @@ import { refreshCardDisplayStatus } from "./settings/settings.js";
   backBtn.addEventListener("click", () => {
     stopTimer();
     stopComboTimer();
+    stopMnemoTimer();
+    stopMnemoExTimer();
     const activeScreen = document.querySelector(".screen.active");
     const screenName = activeScreen ? activeScreen.dataset.screen : null;
 

@@ -114,6 +114,7 @@ export function showSubview(name) {
   if (name === "setup-positions" || name === "session-positions") headerTitle.textContent = t["module.positions.title"];
   if (name === "setup-notation" || name === "session-notation-single" || name === "session-notation-multi") headerTitle.textContent = t["module.notation.title"];
   if (name === "setup-preflop" || name === "session-notation-range") headerTitle.textContent = t["module.preflopTable.title"];
+  if (name === "session-mnemonic") headerTitle.textContent = t["module.mnemonic.title"];
   if (subviewHooks[name]) subviewHooks[name]();
   updateHeaderRightSlot();
 }

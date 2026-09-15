@@ -641,6 +641,96 @@
         </div>
       </div>
 
+      <div class="modal-overlay" id="mnemonic-settings-modal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <span data-i18n="setup.mnemonicSettingsTitle">Настройки: Мнемоника</span>
+            <button class="modal-close" id="mnemonic-settings-cancel-x" aria-label="Закрыть">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="settings.showTime">Время показа</div>
+            <div class="time-options" id="mnemo-time-options">
+              <button class="time-chip" data-value="0.5" data-i18n="settings.time0_5">0.5 сек</button>
+              <button class="time-chip" data-value="1" data-i18n="settings.time1">1 сек</button>
+              <button class="time-chip active" data-value="3" data-i18n="settings.time3">3 сек</button>
+              <button class="time-chip" data-value="5" data-i18n="settings.time5">5 сек</button>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="setup.digitLength">Разрядность чисел</div>
+            <div class="segmented" id="mnemo-digit-switch">
+              <button data-value="2" class="active" data-i18n="setup.digits2">Двузначные</button>
+              <button data-value="3" data-i18n="setup.digits3">Трёхзначные</button>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="setup.exampleCount">Примеров подряд</div>
+            <div class="segmented" id="mnemo-count-switch">
+              <button data-value="3" class="active">3</button>
+              <button data-value="4">4</button>
+              <button data-value="5">5</button>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label" data-i18n="setup.exampleTime">Время на пример</div>
+            <div class="time-options" id="mnemo-ex-time-options">
+              <button class="time-chip" data-value="5" data-i18n="settings.time5">5 сек</button>
+              <button class="time-chip active" data-value="8" data-i18n="setup.time8">8 сек</button>
+              <button class="time-chip" data-value="12" data-i18n="setup.time12">12 сек</button>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" id="mnemonic-settings-cancel" data-i18n="setup.cancel">Отмена</button>
+            <button class="primary-btn" id="mnemonic-settings-ok" data-i18n="setup.ok" disabled>Ок</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="subview" data-subview="session-mnemonic">
+        <div class="session-card">
+          <div class="session-top">
+            <span id="mnemo-phase-label"></span>
+            <span id="mnemo-session-progress">1 / 10</span>
+          </div>
+
+          <div id="mnemo-phase-show">
+            <div class="card-row-label" data-i18n="session.mnemoYourCards">Твои карты</div>
+            <div class="card-row" id="mnemo-hand-row"></div>
+            <div class="timer-bar-track" id="mnemo-timer-track" style="display:none;">
+              <div class="timer-bar-fill" id="mnemo-timer-fill"></div>
+            </div>
+          </div>
+
+          <div id="mnemo-phase-distract" style="display:none;">
+            <div class="card-row-label" id="mnemo-streak-label">0 / 3</div>
+            <div class="total-answer-row">
+              <span class="setting-label" style="margin:0;" id="mnemo-example-text"></span>
+              <input type="number" id="mnemo-example-answer" class="total-answer-input">
+            </div>
+            <div class="timer-bar-track" id="mnemo-ex-timer-track">
+              <div class="timer-bar-fill" id="mnemo-ex-timer-fill"></div>
+            </div>
+            <div class="error-text" id="mnemo-distract-error"></div>
+            <button class="primary-btn" id="mnemo-check-example" data-i18n="session.check">Проверить</button>
+          </div>
+
+          <div id="mnemo-phase-recall" style="display:none;">
+            <div class="card-row-label" data-i18n="session.mnemoRecall">Какие у тебя были карты?</div>
+            <div class="card-slot-row" id="mnemo-recall-slots"></div>
+            <div class="error-text" id="mnemo-recall-error"></div>
+            <button class="primary-btn" id="mnemo-check-recall" data-i18n="session.check">Проверить</button>
+            <button class="secondary-btn" id="mnemo-next-round" style="display:none;" data-i18n="session.next">Следующая раздача</button>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-overlay" id="probs-modal">
         <div class="modal-box">
           <div class="modal-header">
