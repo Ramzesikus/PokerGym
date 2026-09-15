@@ -62,6 +62,13 @@ import { loadSection, saveSection } from "../core/storage.js";
     refreshOutsLanguage();
     refreshComboLanguage();
     formatIterationOptions();
+    // #card-display-status не имеет data-i18n (текст не статичный, а вычисляемый
+    // computeCardDisplayStatus) — обычный обход [data-i18n] выше его не найдёт.
+    // Без явного вызова здесь текст оставался на прежнем языке до следующего
+    // захода на вкладку «Настройки» (тот же класс бага, что уже фиксировался
+    // с визуальными переключателями — восстановление данных само не
+    // синхронизирует то, что вычисляется/рисуется отдельным шагом).
+    refreshCardDisplayStatus();
     const compactToggle = document.getElementById("hub-compact-toggle");
     if (compactToggle) compactToggle.setAttribute("aria-label", dict[state.lang][hubState.compact ? "hub.compactOff" : "hub.compactOn"]);
   }

@@ -713,21 +713,35 @@
 
           <div id="mnemo-phase-distract" style="display:none;">
             <div class="card-row-label" id="mnemo-streak-label">0 / 3</div>
-            <div class="total-answer-row">
+            <div class="mnemo-example-row">
               <span class="setting-label" style="margin:0;" id="mnemo-example-text"></span>
-              <input type="number" id="mnemo-example-answer" class="total-answer-input">
+              <span class="mnemo-answer-display" id="mnemo-answer-display"></span>
             </div>
             <div class="timer-bar-track" id="mnemo-ex-timer-track">
               <div class="timer-bar-fill" id="mnemo-ex-timer-fill"></div>
             </div>
             <div class="error-text" id="mnemo-distract-error"></div>
-            <button class="primary-btn" id="mnemo-check-example" data-i18n="session.check">Проверить</button>
+            <div class="mnemo-keypad" id="mnemo-keypad">
+              <button class="mnemo-key" data-key="1">1</button>
+              <button class="mnemo-key" data-key="2">2</button>
+              <button class="mnemo-key" data-key="3">3</button>
+              <button class="mnemo-key" data-key="4">4</button>
+              <button class="mnemo-key" data-key="5">5</button>
+              <button class="mnemo-key" data-key="6">6</button>
+              <button class="mnemo-key" data-key="7">7</button>
+              <button class="mnemo-key" data-key="8">8</button>
+              <button class="mnemo-key" data-key="9">9</button>
+              <button class="mnemo-key mnemo-key-back" data-key="back" aria-label="Backspace">⌫</button>
+              <button class="mnemo-key" data-key="0">0</button>
+              <button class="mnemo-key mnemo-key-submit" data-key="submit" data-i18n="session.mnemoAnswer">Ответить</button>
+            </div>
           </div>
 
           <div id="mnemo-phase-recall" style="display:none;">
             <div class="card-row-label" data-i18n="session.mnemoRecall">Какие у тебя были карты?</div>
             <div class="card-slot-row" id="mnemo-recall-slots"></div>
-            <div class="error-text" id="mnemo-recall-error"></div>
+            <div class="error-text" id="mnemo-recall-error" style="display:none;"></div>
+            <div class="card-row" id="mnemo-correct-row" style="display:none;"></div>
             <button class="primary-btn" id="mnemo-check-recall" data-i18n="session.check">Проверить</button>
             <button class="secondary-btn" id="mnemo-next-round" style="display:none;" data-i18n="session.next">Следующая раздача</button>
           </div>

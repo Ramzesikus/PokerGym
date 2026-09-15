@@ -12,7 +12,7 @@ import { state } from "../../core/state.js";
 import { dict } from "../../core/i18n.js";
 import { buildDeck, shuffle, randomInt } from "../../core/deck.js";
 import { cardId } from "../../core/hand-eval.js";
-import { cardEl, displayRank, suitSymbols } from "../../ui/card.js";
+import { cardEl } from "../../ui/card.js";
 import { renderSeqCardRow } from "../../ui/card-picker.js";
 import { showSubview, registerTrainingEntry, registerGearProvider } from "../practice-router.js";
 import { loadSection, saveSection } from "../../core/storage.js";
@@ -35,6 +35,7 @@ import { loadSection, saveSection } from "../../core/storage.js";
   let mnemoRecall = [null, null];    // заполняется через renderSeqCardRow
   let mnemoStreak = 0;
   let mnemoCurrentExample = null;    // { text, answer }
+  let mnemoAnswerDigits = "";        // набранный на экранной клавиатуре ответ (строка цифр)
 
   let mnemoTimerHandle = null;   // таймер показа карт
   let mnemoExTimerHandle = null; // таймер одного примера арифметики
@@ -220,8 +221,8 @@ import { loadSection, saveSection } from "../../core/storage.js";
   function nextMnemoExample() {
     mnemoCurrentExample = generateMnemoExample();
     document.getElementById("mnemo-example-text").textContent = mnemoCurrentExample.text + " = ?";
-    const input = document.getElementById("mnemo-example-answer");
-    input.value = "";
+    mnemoAnswerDigits = "";
+    renderMnemoAnswerDisplay();
     startMnemoExTimer();
   }
 
@@ -255,9 +256,31 @@ import { loadSection, saveSection } from "../../core/storage.js";
     }, seconds * 1000);
   }
 
-  document.getElementById("mnemo-check-example").addEventListener("click", () => {
-    const input = document.getElementById("mnemo-example-answer");
-    const val = parseInt(input.value, 10);
+  // Экранная клавиатура вместо нативного <input>+клавиатуры устройства: тап
+  // по цифре сразу пишет в буфер, отправка — отдельной кнопкой в самой сетке
+  // клавиш, без промежуточного выхода в поле ввода (см. чат — основная жалоба
+  // на прежний интерфейс). Для десктопа физическая клавиатура дублирует те же
+  // действия (цифры/Backspace/Enter), не отдельная логика — оба пути сходятся
+  // в тех же трёх функциях ниже.
+
+  function renderMnemoAnswerDisplay() {
+    document.getElementById("mnemo-answer-display").textContent = mnemoAnswerDigits;
+  }
+
+  function mnemoAppendDigit(d) {
+    if (mnemoAnswerDigits.length >= 4) return; // 3-значные примеры дают ответ максимум до ~1998
+    mnemoAnswerDigits += d;
+    renderMnemoAnswerDisplay();
+  }
+
+  function mnemoBackspace() {
+    mnemoAnswerDigits = mnemoAnswerDigits.slice(0, -1);
+    renderMnemoAnswerDisplay();
+  }
+
+  function mnemoSubmitAnswer() {
+    if (mnemoAnswerDigits === "") return; // нечего отправлять — молча игнорируем тап/Enter
+    const val = parseInt(mnemoAnswerDigits, 10);
     stopMnemoExTimer();
 
     if (val === mnemoCurrentExample.answer) {
@@ -272,6 +295,24 @@ import { loadSection, saveSection } from "../../core/storage.js";
       document.getElementById("mnemo-distract-error").textContent = dict[state.lang]["session.mnemoWrong"];
       nextMnemoExample();
     }
+  }
+
+  document.getElementById("mnemo-keypad").addEventListener("click", (e) => {
+    const btn = e.target.closest(".mnemo-key");
+    if (!btn) return;
+    const key = btn.dataset.key;
+    if (key === "back") mnemoBackspace();
+    else if (key === "submit") mnemoSubmitAnswer();
+    else mnemoAppendDigit(key);
+  });
+
+  // Физическая клавиатура — только пока реально активна фаза отвлечения,
+  // чтобы не перехватывать ввод в других модалках/полях на странице.
+  document.addEventListener("keydown", (e) => {
+    if (document.getElementById("mnemo-phase-distract").style.display !== "block") return;
+    if (e.key >= "0" && e.key <= "9") { mnemoAppendDigit(e.key); e.preventDefault(); }
+    else if (e.key === "Backspace") { mnemoBackspace(); e.preventDefault(); }
+    else if (e.key === "Enter") { mnemoSubmitAnswer(); e.preventDefault(); }
   });
 
   /* ===== Фаза 3: вспомнить карты ===== */
@@ -294,7 +335,8 @@ import { loadSection, saveSection } from "../../core/storage.js";
     stopMnemoExTimer();
     showMnemoPhase("recall");
     mnemoRecall = [null, null];
-    document.getElementById("mnemo-recall-error").textContent = "";
+    document.getElementById("mnemo-recall-error").style.display = "none";
+    document.getElementById("mnemo-correct-row").style.display = "none";
     document.getElementById("mnemo-check-recall").style.display = "block";
     document.getElementById("mnemo-check-recall").disabled = true;
     document.getElementById("mnemo-next-round").style.display = "none";
@@ -306,13 +348,32 @@ import { loadSection, saveSection } from "../../core/storage.js";
     const recallIds = mnemoRecall.filter(Boolean).map(cardId);
     const isCorrect = recallIds.length === 2 && recallIds.every(id => dealIds.has(id));
 
+    // Подсветка — те же классы, что и в остальных тренировках (.field-correct/
+    // .field-incorrect), не своя выдумка. renderMnemoRecallSlots() их не тронет
+    // до следующего раунда — слоты не перерисовываются между чеком и «Дальше».
+    document.querySelectorAll("#mnemo-recall-slots .card-slot").forEach(slot => {
+      slot.classList.add(isCorrect ? "field-correct" : "field-incorrect");
+    });
+
     const err = document.getElementById("mnemo-recall-error");
+    const correctRow = document.getElementById("mnemo-correct-row");
     if (isCorrect) {
-      err.textContent = "";
+      err.style.display = "none";
+      correctRow.style.display = "none";
       mnemoState.correctCount += 1;
     } else {
-      err.textContent = dict[state.lang]["session.mnemoIncorrectShow"] + " " +
-        mnemoDeal.cards.map(c => displayRank(c.rank) + suitSymbols[c.suit]).join(" ");
+      // Верный ответ — теми же отрисованными картами, что и в фазе показа
+      // (cardEl), не текстом с символами масти: разные форматы для одной и
+      // той же информации сбивали с толку (см. чат).
+      err.textContent = dict[state.lang]["session.mnemoIncorrectShow"];
+      err.style.display = "block";
+      correctRow.innerHTML = "";
+      mnemoDeal.cards.forEach(c => {
+        const el = cardEl(c, true, state.faceStyle, state.cardBack);
+        el.classList.add("card-hand");
+        correctRow.appendChild(el);
+      });
+      correctRow.style.display = "flex";
     }
     mnemoState.answeredCount += 1;
 

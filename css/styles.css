@@ -244,18 +244,25 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: calc(1.25em * 2);
-    hyphens: auto;
+    /* По умолчанию БЕЗ переноса по слогам (см. чат): hyphens:auto оказался
+       слишком щедрым — вставлял дефис даже там, где слово прекрасно влезало
+       на вторую строку целиком без всякого переноса («Мнемоника», «positions»,
+       «calculation» и т.п. — ровно тот же класс проблемы, что раньше нашли
+       на «эквити», просто раньше чинили точечно одну плитку вместо общего
+       правила). overflow-wrap:break-word остаётся как механическая подстраховка
+       на случай, если однословный заголовок совсем не влезает даже за 2 строки. */
+    hyphens: none;
     overflow-wrap: break-word;
   }
   .hub-card.compact .hub-sub { display: none; }
 
-  /* «Расчёт эквити» — двухсловный заголовок, переносить нужно только между
-     словами (после пробела), не внутри «эквити». Общий hyphens:auto (нужен
-     для однословного «Комбинации», см. ниже) для этой конкретной плитки
-     отключаем точечно — иначе браузер иногда предпочитал перенос по слогу
-     внутри «эквити» переносу по границе слова. */
-  .hub-card[data-module="calc-equity"].compact .hub-title {
-    hyphens: none;
+  /* «Комбинации»/«Combinations» — единственная плитка, где перенос по слогам
+     всё ещё нужен: однословный заголовок без пробелов, который на 76px-плитке
+     физически не помещается в 2 строки без разбивки внутри слова (в отличие
+     от «Мнемоники»/«positions» выше — там 2 строки хватало и без переноса).
+     Точечное включение, не глобальное правило. */
+  .hub-card[data-module="identify-combo"].compact .hub-title {
+    hyphens: auto;
   }
 
   .hub-icon {
@@ -649,6 +656,65 @@
     background: var(--well, #1f2327);
     color: inherit;
     flex-shrink: 0;
+  }
+
+  /* «Мнемоника» — тот же ряд «подпись + значение», но своё правило: явный
+     margin-bottom (у .total-answer-row его нет — раньше не требовался, за ним
+     никогда не шла .timer-bar-track впритык, см. чат: поле слипалось с
+     полосой времени примера). */
+  .mnemo-example-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Дисплей набранного ответа — не <input>: сама тренировка не открывает
+     нативную клавиатуру устройства, весь ввод идёт через .mnemo-keypad ниже
+     (плюс физическая клавиатура на десктопе, см. mnemonics.js). */
+  .mnemo-answer-display {
+    min-width: 56px;
+    min-height: 20px;
+    text-align: center;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--divider, #2a2e33);
+    background: var(--well, #1f2327);
+    color: inherit;
+    flex-shrink: 0;
+  }
+
+  .mnemo-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .mnemo-key {
+    border: 1px solid var(--divider, #2a2e33);
+    background: var(--well, #1f2327);
+    color: inherit;
+    font-size: 18px;
+    font-family: inherit;
+    padding: 14px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .mnemo-key:active { opacity: .7; }
+
+  .mnemo-key-back { color: var(--muted, #8a8f96); font-size: 16px; }
+
+  .mnemo-key-submit {
+    background: #4fa3ff;
+    border-color: #4fa3ff;
+    color: #0d1114;
+    font-weight: 600;
+    font-size: 14px;
   }
 
   .sublevel-grid {
@@ -1315,7 +1381,7 @@
 
   .divider { height: 1px; background: var(--divider, #2a2e33); margin: 20px 0; }
 
-  .preview-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .preview-row { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
 
   .back-swatch {
     width: 44px;
@@ -1332,7 +1398,7 @@
     font-size: 11px;
     color: var(--muted, #6b7076);
     text-align: center;
-    margin-top: 4px;
+    margin-top: 6px;
     width: 44px;
     min-height: 28px;
   }
