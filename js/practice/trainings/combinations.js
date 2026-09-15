@@ -340,6 +340,19 @@ import { loadSection, saveSection } from "../../core/storage.js";
 
   document.getElementById("next-combo-deal").addEventListener("click", nextComboDeal);
 
+  // До фулл-хауса включительно (idx 0-6) — всегда ровно 2 знака. Каре (idx 7) —
+  // ровно 3 знака, Стрит-флеш и Флеш-рояль (idx 8-9) — ровно 4 знака. Раньше
+  // здесь была вариативная точность («минимум 2 живые цифры», fmtProb/
+  // fmtProbCoarse) — по прямому решению Романа заменена на фиксированное число
+  // знаков для наглядности и предсказуемости в столбцах точных вероятностей.
+  // fmtProb/fmtProbCoarse ниже никуда не делись — ими по-прежнему считается
+  // только тренировочная колонка (см. fmtProbByRow), это решение не трогает.
+  function fmtProbExact(pct, idx) {
+    if (idx <= 6) return pct.toFixed(2);
+    if (idx === 7) return pct.toFixed(3);
+    return pct.toFixed(4);
+  }
+
   // Минимум 2 «живые» (не нулевые после ведущих нулей) цифры после запятой —
   // см. чат: обычные 2 знака достаточны для больших процентов, редкие категории
   // получают столько знаков, сколько нужно (0.00015% для рояля на 5 картах и т.п.).
@@ -371,11 +384,10 @@ import { loadSection, saveSection } from "../../core/storage.js";
     return pct.toFixed(Math.max(fineDec - 1, 0));
   }
 
-  // До фулл-хауса включительно (idx 0-6) — всегда ровно 2 знака, без вариативной
-  // точности: там эти числа не мелкие, «живые цифры» только усложняли вид
-  // (11.050%, 1.011% и т.п.) без необходимости. Вариативная точность остаётся
-  // только для по-настоящему редких категорий (Каре/Стрит-флеш — fmtProb,
-  // Флеш-рояль — fmtProbCoarse), где она реально нужна для читаемости.
+  // Тренировочная колонка (5-я) — единственная, что всё ещё считается этой
+  // вариативной точностью («минимум 2 живые цифры», Флеш-рояль на 1 знак
+  // грубее). Столбцы точных вероятностей (5/6/7 карт) больше не используют
+  // fmtProbByRow — там фиксированная точность по строке, см. fmtProbExact выше.
   function fmtProbByRow(pct, idx) {
     if (idx <= 6) return pct.toFixed(2);
     if (idx === 9) return fmtProbCoarse(pct);
@@ -391,9 +403,9 @@ import { loadSection, saveSection } from "../../core/storage.js";
     table.appendChild(headerRow);
     CATEGORY_NAMES[state.lang].forEach((name, idx) => {
       const row = document.createElement("tr");
-      const fmt5 = fmtProbByRow(REAL_PROBS_5[idx], idx);
-      const fmt6 = fmtProbByRow(REAL_PROBS_6[idx], idx);
-      const fmt7 = fmtProbByRow(REAL_PROBS[idx], idx);
+      const fmt5 = fmtProbExact(REAL_PROBS_5[idx], idx);
+      const fmt6 = fmtProbExact(REAL_PROBS_6[idx], idx);
+      const fmt7 = fmtProbExact(REAL_PROBS[idx], idx);
       const fmtT = fmtProbByRow(TRAINING_WEIGHTS[idx], idx);
       row.innerHTML = "<td>" + name + "</td><td>" + fmt5 + "%</td><td>" + fmt6 + "%</td><td>" + fmt7 + "%</td><td>" + fmtT + "%</td>";
       table.appendChild(row);

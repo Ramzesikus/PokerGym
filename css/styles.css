@@ -249,6 +249,15 @@
   }
   .hub-card.compact .hub-sub { display: none; }
 
+  /* «Расчёт эквити» — двухсловный заголовок, переносить нужно только между
+     словами (после пробела), не внутри «эквити». Общий hyphens:auto (нужен
+     для однословного «Комбинации», см. ниже) для этой конкретной плитки
+     отключаем точечно — иначе браузер иногда предпочитал перенос по слогу
+     внутри «эквити» переносу по границе слова. */
+  .hub-card[data-module="calc-equity"].compact .hub-title {
+    hyphens: none;
+  }
+
   .hub-icon {
     width: 40px;
     height: 40px;
@@ -655,13 +664,16 @@
     color: inherit;
     font-size: 13px;
     font-family: inherit;
-    padding: 14px 4px;
+    padding: 8px 4px;
     border-radius: 8px;
     cursor: pointer;
     text-align: center;
-    hyphens: auto;
-    overflow-wrap: break-word;
-    text-align: center;
+    /* Перенос — не по словарю (hyphens:auto), а принудительно сразу после «+»:
+       сами строки словаря содержат перевод строки в этом месте (см. i18n.js),
+       white-space:pre-line его уважает, не переносит и не hyphenирует больше
+       нигде. «5 карт»/«5 cards» без «+» короче ширины кнопки и переноса не
+       требуют — под общую высоту строки всё равно подстраиваются грид-строкой. */
+    white-space: pre-line;
   }
 
   .sublevel-grid button.active {
